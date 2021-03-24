@@ -3,8 +3,8 @@ const todaysEntries = require("./script");
 test("Should return names of the entries with todays date ", () => {
   input = [
     { name: "Johny", date: "2021-01-21T02:53:42+05:30" },
-    { name: "Sugar", date: Date().toISOString() },
-    { name: "Sun", date: Date().toISOString() },
+    { name: "Sugar", date: new Date().toISOString() },
+    { name: "Sun", date: new Date().toISOString() },
   ];
 
   expect(createInitialsFromName(input)).toBe("Sugar,Sun");
