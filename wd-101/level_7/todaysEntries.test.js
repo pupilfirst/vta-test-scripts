@@ -7,7 +7,7 @@ test("Should return names of the entries with todays date ", () => {
     { name: "Sun", date: Date().toISOString() },
   ];
 
-  expect(createInitialsFromName(input)).toBe("Sugar, Sun");
+  expect(createInitialsFromName(input)).toBe("Sugar,Sun");
 });
 
 test("Should return an empty string if there are no entries for today", () => {
