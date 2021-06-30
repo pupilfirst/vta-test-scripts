@@ -1,19 +1,19 @@
 const isValidPassphrase = require("./script");
 
 describe("isValidPassphrase()", () => {
-  test("empty passphrase", () => {
+  test("An empty passphrase returns false", () => {
     expect(isValidPassphrase("")).toBe(false);
   });
 
-  test("valid passphrase with all word length greater than 2", () => {
+  test("A valid passphrase with all word length greater than 2 returns true", () => {
     expect(isValidPassphrase("my name is john doe")).toBe(true);
   });
 
-  test("invalid passphrase with one of the word length less than 2", () => {
+  test("An invalid passphrase with one of the word length less than 2 returns false", () => {
     expect(isValidPassphrase("i am an awesome programmer")).toBe(false);
   });
 
-  test("passphrase is invalid without enough words", () => {
+  test("A passphrase without enough words returns false", () => {
     expect(isValidPassphrase("Hello world")).toBe(false);
   });
 });
