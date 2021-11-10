@@ -29,7 +29,7 @@ jobs:
           report_file_path: "report.json"
           status: "pending"
           description: "The automated tests are in progress"
-         env:
+        env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Run tests on student submission
@@ -39,6 +39,6 @@ jobs:
         uses: mahesh-krishnakumar/pupilfirst-reporting@main
         with:
           report_file_path: "submission/report.json"
-         env:
+        env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
