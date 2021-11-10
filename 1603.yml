@@ -1,0 +1,44 @@
+name: Ruby Test Runner
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        ruby: [ '2.7' ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - uses: actions/checkout@v2
+        with:
+          repository: mahesh-krishnakumar/wd201-l2
+          path: submission
+      - name: Report to LMS tests in progress
+        uses: mahesh-krishnakumar/pupilfirst-reporting@main
+        with:
+          report_file_path: "report.json"
+          status: "pending"
+          description: "The automated tests are in progress"
+         env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Run tests on student submission
+        working-directory: ./submission/l2
+        run: ruby test.rb
+      - name: Report to LMS the outcome of tests.
+        uses: mahesh-krishnakumar/pupilfirst-reporting@main
+        with:
+          report_file_path: "submission/report.json"
+         env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
