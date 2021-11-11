@@ -17,7 +17,8 @@ jobs:
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
-      - uses: actions/github-script@v5
+      - name: Extract the student submission repo from URL
+        uses: actions/github-script@v5
         id: get-repo-name
         with:
           script: |
@@ -40,7 +41,8 @@ jobs:
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
-      - uses: ruby/setup-ruby@v1
+      - name: Install Ruby dependencies
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           working-directory: submission
