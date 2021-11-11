@@ -15,7 +15,8 @@ jobs:
       matrix:
         ruby: [ '2.7' ]
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
       - uses: actions/github-script@v5
         id: get-repo-name
         with:
@@ -26,7 +27,8 @@ jobs:
             const repoName = regex.exec(gitURL)[1]
             return repoName
           result-encoding: string
-      - uses: actions/checkout@v2
+      - name: Check out the repository with student code 
+        uses: actions/checkout@v2
         with:
           repository: ${{steps.get-repo-name.outputs.result}}
           path: submission
