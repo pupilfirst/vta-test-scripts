@@ -14,30 +14,38 @@ jobs:
     strategy:
       matrix:
         ruby: [ '2.7' ]
-        gemfile: [ activesupport ]
-        env: 
-          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-ruby@v1
+      - uses: actions/github-script@v5
+        id: get-repo-name
         with:
-          ruby-version: ${{ matrix.ruby }}
+          script: |
+            const submission = require('./submission.json')
+            const gitURL =  submission.checklist[0].result
+            const regex = /(?:git@|https:\/\/)github.com[:/](.*)/g
+            const repoName = regex.exec(gitURL)[1]
+            return repoName
+          result-encoding: string
       - uses: actions/checkout@v2
         with:
-          repository: mahesh-krishnakumar/wd201-l2
+          repository: ${{steps.get-repo-name.outputs.result}}
           path: submission
       - name: Report to LMS tests in progress
         uses: mahesh-krishnakumar/pupilfirst-reporting@main
         with:
-          report_file_path: "report.json"
           status: "pending"
           description: "The automated tests are in progress"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          working-directory: submission
+          bundler-cache: true
       - name: Run tests on student submission
-        working-directory: ./submission/l2
-        run: ruby test.rb
+        working-directory: submission
+        run: bundle exec ruby test.rb
       - name: Report to LMS the outcome of tests.
         uses: mahesh-krishnakumar/pupilfirst-reporting@main
         with:
@@ -45,3 +53,4 @@ jobs:
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+          
