@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        ruby: [ '2.7' ]
+        ruby: ["2.7.4"]
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
@@ -28,15 +28,15 @@ jobs:
             const repoName = regex.exec(gitURL)[1]
             return repoName
           result-encoding: string
-      - name: Check out the repository with student code 
+      - name: Check out the repository with student code
         uses: actions/checkout@v2
         with:
           repository: ${{steps.get-repo-name.outputs.result}}
           path: submission
       - name: Report to LMS tests in progress
-        uses: mahesh-krishnakumar/pupilfirst-reporting@main
+        uses: pupilfirst/actions/reporting@v1
         with:
-          status: "pending"
+          status: "in_progress"
           description: "The automated tests are in progress"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
@@ -51,10 +51,10 @@ jobs:
         working-directory: submission
         run: bundle exec ruby test.rb
       - name: Report to LMS the outcome of tests.
-        uses: mahesh-krishnakumar/pupilfirst-reporting@main
+        uses: pupilfirst/actions/reporting@v1
         with:
+          status: "completed"
           report_file_path: "submission/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
-          
