@@ -8,12 +8,17 @@ on:
 
 jobs:
   repo_check:
+    runs-on: ubuntu-latest
+    outputs:
+      outcome: ${{steps.get-repo-name.outcome}}
+      repoName: ${{steps.get-repo-name.outputs.result}}
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
       - name: Extract the student submission repo from URL
         uses: actions/github-script@v5
         id: get-repo-name
+        continue-on-error: true
         with:
           script: |
             const submission = require('./submission.json')
@@ -23,15 +28,18 @@ jobs:
             return repoName
           result-encoding: string
       - name: Report invalid repository URL in submission
-        if: failure()
+        if: steps.get-repo-name.outcome != 'success'
         uses: pupilfirst/actions/reporting@v1
         with:
           status: "completed"
           conclusion: "error"
           description: "The student submission does not have a valid Github repository URL"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   tests:
     needs: repo_check
-    if: needs.repo_check.steps.get-repo-name.conclusion == 'success'
+    if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -39,21 +47,10 @@ jobs:
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
-      - name: Extract the student submission repo from URL
-        uses: actions/github-script@v5
-        id: get-repo-name
-        with:
-          script: |
-            const submission = require('./submission.json')
-            const gitURL =  submission.checklist[0].result
-            const regex = /(?:git@|https:\/\/)github.com[:/](.*)/g
-            const repoName = regex.exec(gitURL)[1]
-            return repoName
-          result-encoding: string
       - name: Check out the repository with student code
         uses: actions/checkout@v2
         with:
-          repository: ${{steps.get-repo-name.outputs.result}}
+          repository: ${{needs.repo_check.outputs.repoName}}
           path: submission
       - name: Report to LMS tests in progress
         uses: pupilfirst/actions/reporting@v1
