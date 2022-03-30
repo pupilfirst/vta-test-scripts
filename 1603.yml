@@ -7,10 +7,32 @@ on:
     branches: [main]
 
 jobs:
-  build:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
+  repo_check:
+    steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
+      - name: Extract the student submission repo from URL
+        uses: actions/github-script@v5
+        id: get-repo-name
+        with:
+          script: |
+            const submission = require('./submission.json')
+            const gitURL =  submission.checklist[0].result
+            const regex = /(?:git@|https:\/\/)github.com[:/](.*)/g
+            const repoName = regex.exec(gitURL)[1]
+            return repoName
+          result-encoding: string
+      - name: Report invalid repository URL in submission
+        if: failure()
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "completed"
+          conclusion: "error"
+          description: "The student submission does not have a valid Github repository URL"
+  tests:
+    needs: repo_check
+    if: needs.repo_check.steps.get-repo-name.conclusion == 'success'
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         ruby: ["2.7.4"]
