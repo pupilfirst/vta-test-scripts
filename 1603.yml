@@ -49,9 +49,26 @@ jobs:
         uses: actions/checkout@v2
       - name: Check out the repository with student code
         uses: actions/checkout@v2
+        continue-on-error: true
+        id: checkout-student-repo
         with:
           repository: ${{needs.repo_check.outputs.repoName}}
           path: submission
+      - name: Report invalid repository URL in submission
+        if: steps.checkout-student-repo.outcome != 'success'
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "completed"
+          conclusion: "error"
+          description: "The student repo does not exist"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Check out the repository with solutions and tests
+        uses: actions/checkout@v2
+        with:
+          repository: "pupilfirst/wd201-solutions"
+          path: solution
       - name: Report to LMS tests in progress
         uses: pupilfirst/actions/reporting@v1
         with:
@@ -64,16 +81,16 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          working-directory: submission
+          working-directory: solution/l2
           bundler-cache: true
       - name: Run tests on student submission
-        working-directory: submission
+        working-directory: solution/l2
         run: bundle exec ruby test.rb
       - name: Report to LMS the outcome of tests.
         uses: pupilfirst/actions/reporting@v1
         with:
           status: "completed"
-          report_file_path: "submission/report.json"
+          report_file_path: "solution/l2/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
