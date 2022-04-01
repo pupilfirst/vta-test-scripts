@@ -29,11 +29,9 @@ jobs:
           result-encoding: string
       - name: Report invalid repository URL in submission
         if: steps.get-repo-name.outcome != 'success'
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/actions/grading@v1
         with:
-          status: "completed"
-          conclusion: "error"
-          description: "The student submission does not have a valid Github repository URL"
+          fail_submission: true
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
@@ -43,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: ["2.7.4"]
+        ruby: ["3.1.1"]
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
@@ -83,9 +81,22 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           working-directory: solution/l2
           bundler-cache: true
+      - name: Copy student lookup file to solution directory
+        id: copy-student-file
+        continue-on-error: true
+        run: |
+          rm solution/l2/lookup.rb
+          cp submission/lookup.rb solution/l2
       - name: Run tests on student submission
         working-directory: solution/l2
         run: bundle exec ruby test.rb
+      - name: Grade the submission based on test results
+        uses: pupilfirst/actions/grading@v1
+        with:
+          report_file_path: "solution/l2/report.json"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Report to LMS the outcome of tests.
         uses: pupilfirst/actions/reporting@v1
         with:
