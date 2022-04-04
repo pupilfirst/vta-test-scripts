@@ -1,0 +1,107 @@
+name: Ruby Test Runner
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  repo_check:
+    runs-on: ubuntu-latest
+    outputs:
+      outcome: ${{steps.get-repo-name.outcome}}
+      repoName: ${{steps.get-repo-name.outputs.result}}
+    steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
+      - name: Extract the student submission repo from URL
+        uses: actions/github-script@v5
+        id: get-repo-name
+        continue-on-error: true
+        with:
+          script: |
+            const submission = require('./submission.json')
+            const gitURL =  submission.checklist[0].result
+            const regex = /(?:git@|https:\/\/)github.com[:/](.*)/g
+            const repoName = regex.exec(gitURL)[1]
+            return repoName
+          result-encoding: string
+      - name: Report invalid repository URL in submission
+        if: steps.get-repo-name.outcome != 'success'
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+  tests:
+    needs: repo_check
+    if: needs.repo_check.outputs.outcome == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: ["3.1.1"]
+    steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
+      - name: Check out the repository with student code
+        uses: actions/checkout@v2
+        continue-on-error: true
+        id: checkout-student-repo
+        with:
+          repository: ${{needs.repo_check.outputs.repoName}}
+          path: submission
+      - name: Report invalid repository URL in submission
+        if: steps.checkout-student-repo.outcome != 'success'
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "completed"
+          conclusion: "error"
+          description: "The student repo does not exist"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Check out the repository with solutions and tests
+        uses: actions/checkout@v2
+        with:
+          repository: "pupilfirst/wd201-solutions"
+          path: solution
+      - name: Report to LMS tests in progress
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "in_progress"
+          description: "The automated tests are in progress"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Install Ruby dependencies
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          working-directory: solution/l3
+          bundler-cache: true
+      - name: Copy student todo list file to solution directory
+        id: copy-student-file
+        continue-on-error: true
+        run: |
+          rm solution/l3/todo_list.rb
+          cp submission/todo_list.rb solution/l3
+      - name: Run tests on student submission
+        working-directory: solution/l3
+        run: bundle exec ruby test.rb
+      - name: Grade the submission based on test results
+        uses: pupilfirst/actions/grading@v1
+        with:
+          report_file_path: "solution/l3/report.json"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Report to LMS the outcome of tests.
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "completed"
+          report_file_path: "solution/l3/report.json"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
