@@ -25,7 +25,11 @@ jobs:
             const gitURL =  submission.checklist[0].result
             const regex = /(?:git@|https:\/\/)github.com[:/](.*)/g
             const repoName = regex.exec(gitURL)[1]
-            return repoName
+            if (repoName.endsWith("/")) {
+              return repoName.slice(0, -1);
+            } else {
+              return repoName
+            }
           result-encoding: string
       - name: Report invalid repository URL in submission
         if: steps.get-repo-name.outcome != 'success'
