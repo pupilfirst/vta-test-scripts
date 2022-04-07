@@ -2,9 +2,7 @@ name: Ruby Test Runner
 
 on:
   push:
-    branches: ["*"]
-  pull_request:
-    branches: [main]
+    branches: ["submission-*"]
 
 jobs:
   repo_check:
@@ -36,7 +34,7 @@ jobs:
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
-          feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL and not a link to directory.
+          feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL and not a link to directory or branch.
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
