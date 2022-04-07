@@ -23,12 +23,12 @@ jobs:
           script: |
             const submission = require('./submission.json')
             const gitURL =  submission.checklist[0].result
-            const regex = /(?:git@|https:\/\/)github.com[:/](.*)/g
-            const repoName = regex.exec(gitURL)[1]
-            if (repoName.endsWith("/")) {
-              return repoName.slice(0, -1);
-            } else {
+            const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g
+            const repoName = regex.exec(gitURL)[1].replace(/.git$|\/$/, "")
+            if (repoName.split("/").length == 2) {
               return repoName
+            } else {
+              throw "The submitted URL seems to be of a folder inside a repository"
             }
           result-encoding: string
       - name: Report invalid repository URL in submission
