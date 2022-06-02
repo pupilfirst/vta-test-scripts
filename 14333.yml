@@ -1,0 +1,19 @@
+name: Node JS Test Runner
+
+on:
+  push:
+    branches: ["submission-*"]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
+      - name: Test workflow
+        id: copy-student-file
+        run: |
+          echo "Test begins"
