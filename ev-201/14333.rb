@@ -33,11 +33,15 @@ class LevelFourMilestone
   end
 
   def verify_submission(submission_data)
-    if correct_submission?
-      { result: "pass", feedback: "Dear Student, Good Job. The energy consumption simulated by you is correct." }
+    result = if correct_submission?
+      { status: "success", feedback: "Dear Student, Good Job. The energy consumption simulated by you is correct." }
     else
-      { result: "failed", feedback: custom_feedback}
-    end
+      { status: "failure", feedback: custom_feedback}
+    end.to_json
+
+    report_file = File.new("report.json", "w")
+
+    report_file.puts(result)
   end
 
   def sanitize_responses(raw_data)
