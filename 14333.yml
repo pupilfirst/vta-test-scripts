@@ -1,4 +1,4 @@
-name: Node JS Test Runner
+name: Ruby Test Runner
 
 on:
   push:
@@ -9,11 +9,34 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x]
+        ruby: ["3.1.1"]
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
-      - name: Test workflow
+      - name: Check out the repository with test scripts
+        uses: actions/checkout@v2
+        with:
+          repository: "pupilfirst/vta-test-scripts"
+          path: scripts
+      - name: Install Ruby dependencies
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          working-directory: scripts/ev-201
+          bundler-cache: true
+      - name: Copy submission data to testing directory
         id: copy-student-file
+        continue-on-error: true
         run: |
-          echo "Test begins"
+          cp ./submission.json scripts/ev-201
+      - name: Run tests on student submission
+        working-directory: scripts/ev-201
+        run: |
+          ruby 14333.rb
+      - name: Grade the submission based on test results
+        uses: pupilfirst/actions/grading@v1
+        with:
+          report_file_path: "scripts/ev-201/report.json"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
