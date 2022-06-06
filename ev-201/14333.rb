@@ -29,7 +29,7 @@ class LevelFourMilestone
   private
 
   def correct_submission?
-    valid_questionnaire && valid_energy_consumption && valid_battery_selection
+    valid_questionnaire && valid_energy_consumption
   end
 
   def verify_submission(submission_data)
