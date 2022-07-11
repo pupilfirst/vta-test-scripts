@@ -21,7 +21,7 @@ jobs:
           script: |
             const submission = require('./submission.json')
             const gitURL =  submission.checklist[3].result
-            if (gitURL.split("/").length == 2) {
+            if (gitURL.split("/").length >= 2) {
               return gitURL
             } else {
               throw "The submitted URL seems to be invalid"
@@ -44,10 +44,13 @@ jobs:
       matrix:
         ruby: ["3.1.1"]
     steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
       - name: Check out the repository with solutions and tests
         uses: actions/checkout@v2
         with:
           repository: "bodhish/wd-101-test"
+          path: solution
       - name: Report to LMS tests in progress
         uses: pupilfirst/actions/reporting@v1
         with:
@@ -56,20 +59,23 @@ jobs:
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Hack to run cypress on root
+        run: |
+          cp solution/package.json package.json
+          cp solution/package-lock.json package-lock.json
       - name: Cypress run with env
         uses: cypress-io/github-action@v4
         with:
           browser: chrome
+          project: ./solution
           env: STUDENT_SUBMISSION_URL=${{needs.repo_check.outputs.submissionUrl}}
-      
       - name: Use Node.js to generate report
-        uses: actions/setup-node@v3
         run: |
-          node generateReportFromResults.js
+          cd solution && node generateReportFromResults.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
         with:
-          report_file_path: "report.json"
+          report_file_path: "solution/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
@@ -77,7 +83,7 @@ jobs:
         uses: pupilfirst/actions/reporting@v1
         with:
           status: "completed"
-          report_file_path: "report.json"
+          report_file_path: "solution/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
