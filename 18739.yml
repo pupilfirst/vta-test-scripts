@@ -1,4 +1,4 @@
-name: Cypress trst Runner
+name: Wd-101 Capstone | Cypress Test
 
 on:
   push:
