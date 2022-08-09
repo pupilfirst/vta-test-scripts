@@ -110,10 +110,16 @@ jobs:
           rm solution/l5/config/routes.rb
           cp -r submission/app solution/l5/app
           cp submission/config/routes.rb solution/l5/config/routes.rb
-      - name: Setup database and run tests on student submission
+      - name: Setup database
+        id: setup_database
         working-directory: solution/l5
         continue-on-error: true
-        run: (bundle exec rails db:setup; bundle exec rails test) > test_result.txt 2>&1
+        run: bundle exec rails db:setup > test_result.txt 2>&1
+      - name: Run tests on student submission
+        if: ${{ steps.setup_database.outcome == 'success' }}
+        working-directory: solution/l5
+        continue-on-error: true
+        run: bundle exec rails test > test_result.txt 2>&1
       - name: Generate Test status
         working-directory: solution/l5
         run: bundle exec ruby report.rb
