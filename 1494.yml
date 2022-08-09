@@ -116,7 +116,7 @@ jobs:
       - name: Run tests on student submission
         working-directory: solution/l5
         continue-on-error: true
-        run: bundle exec rails test > test_result.txt
+        run: bundle exec rails test 2>&1 test_result.txt
       - name: Generate Test status
         working-directory: solution/l5
         run: bundle exec ruby report.rb
