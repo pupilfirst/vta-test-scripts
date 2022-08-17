@@ -11,6 +11,8 @@ jobs:
       matrix:
         ruby: ["3.1.1"]
     steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
         with:
