@@ -13,10 +13,14 @@ jobs:
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
+      - name: Download File
+        uses: wei/curl@master
+        with:
+          args: curl https://raw.githubusercontent.com/pupilfirst/vta-test-scripts/master/report/pass.json -o pass.json
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
         with:
-          report_file_path: "https://raw.githubusercontent.com/pupilfirst/vta-test-scripts/master/report/pass.json"
+          report_file_path: "pass.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
