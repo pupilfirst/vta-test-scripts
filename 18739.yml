@@ -49,7 +49,7 @@ jobs:
       - name: Check out the repository with solutions and tests
         uses: actions/checkout@v2
         with:
-          repository: "bodhish/wd-101-test"
+          repository: "pupilfirst/wd101-capstone-test"
           path: solution
       - name: Report to LMS tests in progress
         uses: pupilfirst/actions/reporting@v1
