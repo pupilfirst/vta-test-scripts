@@ -100,6 +100,7 @@ jobs:
                 let report = {
                   version: 0,
                   grade: passed ? "accept" : "reject",
+                  status: passed ? "success" : "failure",
                   feedback: feedback,
                 };
                 fs.writeFileSync(reportFile, JSON.stringify(report));
