@@ -68,7 +68,7 @@ jobs:
           node submission/index.js > output.txt
         continue-on-error: true
       - name: Report absence of script file to LMS
-        if: steps.check-function-output.outcome != 'success'
+        if: steps.check-function-output.outcome == 'failure'
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
