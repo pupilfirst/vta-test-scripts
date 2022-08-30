@@ -43,12 +43,15 @@ jobs:
     if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
       - name: Check out the repository with student code
         uses: actions/checkout@v2
         continue-on-error: true
         id: checkout-student-repo
         with:
           repository: ${{needs.repo_check.outputs.repoName}}
+          path: submission
       - name: Report invalid repository URL in submission
         if: steps.checkout-student-repo.outcome != 'success'
         uses: pupilfirst/actions/grading@v1
@@ -62,7 +65,7 @@ jobs:
         if: steps.checkout-student-repo.outcome == 'success'
         id: check-function-output
         run: |
-          node index.js > output.txt
+          node submission/index.js > output.txt
         continue-on-error: true
       - name: Report absence of script file to LMS
         if: steps.check-function-output.outcome != 'success'
