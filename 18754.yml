@@ -50,7 +50,7 @@ jobs:
         continue-on-error: true
         id: checkout-solution-repo
         with:
-          repository: mahesh-krishnakumar/wd201-l2-test
+          repository: pupilfirst/wd201-l2-milestone-test
           path: solution
       - name: Check out the repository with student code
         uses: actions/checkout@v2
