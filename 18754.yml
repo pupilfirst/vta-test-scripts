@@ -82,7 +82,7 @@ jobs:
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
-          feedback: It seems like there are one or missing files in your submitted repository. Please ensure that your repository has all the required files as per the milestone specifications.
+          feedback: It seems like there are one or more missing files in your submitted repository. Please ensure that your repository has all the required files as per the milestone specifications.
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
