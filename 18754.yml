@@ -48,6 +48,13 @@ jobs:
       - name: Check out the repository with student code
         uses: actions/checkout@v2
         continue-on-error: true
+        id: checkout-solution-repo
+        with:
+          repository: mahesh-krishnakumar/wd201-l2-test
+          path: solution
+      - name: Check out the repository with student code
+        uses: actions/checkout@v2
+        continue-on-error: true
         id: checkout-student-repo
         with:
           repository: ${{needs.repo_check.outputs.repoName}}
@@ -58,6 +65,31 @@ jobs:
         with:
           fail_submission: true
           feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL.
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Copy submission files to solution
+        id: copy-submission-files
+        continue-on-error: true
+        run: |
+          cp submission/index.js solution/index.js
+          cp submission/home.html solution/home.html
+          cp submission/project.html solution/project.html
+          cp submission/registration.html solution/registration.html
+      - name: Run tests in the solution repo
+        continue-on-error: true
+        run: |
+          cd solution
+          npm install
+          npm run test
+      - name: Use Node.js to generate report
+        run: |
+          cd solution && node generateReportFromResults.js
+      - name: Report to LMS the outcome of tests.
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "completed"
+          report_file_path: "solution/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
