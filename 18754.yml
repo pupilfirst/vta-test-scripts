@@ -85,11 +85,9 @@ jobs:
       - name: Use Node.js to generate report
         run: |
           cd solution && node generateReportFromResults.js
-      - name: Report to LMS the outcome of tests.
-        uses: pupilfirst/actions/reporting@v1
+      - name: Grade the submission based on test results
+        uses: pupilfirst/actions/grading@v1
         with:
-          status: "completed"
           report_file_path: "solution/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
