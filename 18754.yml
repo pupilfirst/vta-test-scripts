@@ -77,6 +77,15 @@ jobs:
           cp submission/home.html solution/home.html
           cp submission/project.html solution/project.html
           cp submission/registration.html solution/registration.html
+      - name: Report missing files to the student
+        if: steps.copy-submission-files.outcome != 'success'
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+          feedback: It seems like there are one or missing files in your submitted repository. Please ensure that your repository has all the required files as per the milestone specifications.
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Run tests in the solution repo
         continue-on-error: true
         id: run-cypress-test
@@ -87,7 +96,6 @@ jobs:
           npm run test
       - name: Use Node.js to generate report
         id: generate-report
-        if: steps.run-cypress-test.outcome == 'success'
         continue-on-error: true
         run: |
           cd solution && node generateReportFromResults.js
