@@ -93,7 +93,7 @@ jobs:
           node test.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
-        if: steps.generate-report.outcome == 'success'
+        if: steps.run-test.outcome == 'success'
         with:
           report_file_path: "solution/report.json"
         env:
