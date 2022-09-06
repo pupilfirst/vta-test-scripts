@@ -42,9 +42,6 @@ jobs:
     needs: repo_check
     if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        ruby: ["3.1.1"]
     services:
       postgres:
         image: postgres:11.7
