@@ -74,7 +74,7 @@ jobs:
         continue-on-error: true
         run: |
           rm -rf solution/__tests__
-          cp submission/__tests__ solution
+          cp -r submission/__tests__ solution
       - name: Run tests in the solution repo
         continue-on-error: true
         id: run-jest-test
