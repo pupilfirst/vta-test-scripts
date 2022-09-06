@@ -89,11 +89,6 @@ jobs:
         with:
           repository: mahesh-krishnakumar/wd201-l5-test
           path: solution
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: "npm"
-          cache-dependency-path: solution/package-lock.json
       - name: Copy submission files to solution
         if: steps.checkout-student-repo.outcome == 'success'
         id: copy-submission-files
@@ -101,6 +96,24 @@ jobs:
         run: |
           cp submission/Todo.js solution/Todo.js
           cp submission/connectDB.js solution/connectDB.js
-      - name: Setup Database
-        working-directory: solution
-        run: npm run test
+      - name: Run tests in the solution repo
+        continue-on-error: true
+        id: run-jest-test
+        if: steps.copy-submission-files.outcome == 'success'
+        run: |
+          cd solution
+          npm install
+          npm run test
+      - name: Use Node.js to generate report
+        id: generate-report
+        continue-on-error: true
+        run: |
+          cd solution && node generateReportFromResults.js
+      - name: Grade the submission based on test results
+        uses: pupilfirst/actions/grading@v1
+        if: steps.generate-report.outcome == 'success'
+        with:
+          report_file_path: "solution/report.json"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
