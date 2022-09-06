@@ -61,6 +61,14 @@ jobs:
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Report to LMS tests in progress
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "in_progress"
+          description: "The automated tests are in progress"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Check out the repository with student code
         uses: actions/checkout@v2
         continue-on-error: true
@@ -88,3 +96,23 @@ jobs:
         continue-on-error: true
         run: |
           cd solution && node generateReportFromResults.js
+      - name: Report to LMS the outcome of tests.
+        uses: pupilfirst/actions/reporting@v1
+        if: steps.generate-report.outcome == 'success'
+        id: report-test-results
+        with:
+          status: "completed"
+          report_file_path: "solution/report.json"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Report error to LMS
+        uses: pupilfirst/actions/reporting@v1
+        if: steps.report-test-results.outcome == 'skipped'
+        with:
+          status: "completed"
+          conclusion: "error"
+          description: "Automated tests could not be run successfully"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
