@@ -1,0 +1,90 @@
+name: WD201 Node.js - L4 Milestone
+
+on:
+  push:
+    branches: ["submission-*"]
+
+jobs:
+  repo_check:
+    runs-on: ubuntu-latest
+    outputs:
+      outcome: ${{steps.get-repo-name.outcome}}
+      repoName: ${{steps.get-repo-name.outputs.result}}
+    steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
+      - name: Extract the student submission repo from URL
+        uses: actions/github-script@v5
+        id: get-repo-name
+        continue-on-error: true
+        with:
+          script: |
+            const submission = require('./submission.json')
+            const gitURL =  submission.checklist[0].result
+            const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g
+            const repoName = regex.exec(gitURL)[1].replace(/.git$|\/$/, "")
+            if (repoName.split("/").length == 2) {
+              return repoName
+            } else {
+              throw "The submitted URL seems to be of a folder inside a repository"
+            }
+          result-encoding: string
+      - name: Report invalid repository URL in submission
+        if: steps.get-repo-name.outcome != 'success'
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+          feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL and not a link to directory or branch.
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+  tests:
+    needs: repo_check
+    if: needs.repo_check.outputs.outcome == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
+      - name: Check out the repository with student code
+        uses: actions/checkout@v2
+        continue-on-error: true
+        id: checkout-student-repo
+        with:
+          repository: ${{needs.repo_check.outputs.repoName}}
+          path: submission
+      - name: Report invalid repository URL in submission
+        if: steps.checkout-student-repo.outcome != 'success'
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+          feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL.
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Check out the repository with student code
+        uses: actions/checkout@v2
+        continue-on-error: true
+        id: checkout-solution-repo
+        with:
+          repository: mahesh-krishnakumar/wd201-l4-test
+          path: solution
+      - name: Copy submission test files to solution
+        if: steps.checkout-student-repo.outcome == 'success'
+        id: copy-submission-files
+        continue-on-error: true
+        run: |
+          rm -rf solution/__tests__
+          cp submission/__tests__ solution
+      - name: Run tests in the solution repo
+        continue-on-error: true
+        id: run-jest-test
+        if: steps.copy-submission-files.outcome == 'success'
+        run: |
+          cd solution
+          npm install
+          npm run test
+      - name: Use Node.js to generate report
+        id: generate-report
+        continue-on-error: true
+        run: |
+          cd solution && node generateReportFromResults.js
