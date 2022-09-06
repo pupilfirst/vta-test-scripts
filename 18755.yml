@@ -50,7 +50,7 @@ jobs:
         continue-on-error: true
         id: checkout-solution-repo
         with:
-          repository: mahesh-krishnakumar/wd201-l3-test
+          repository: pupilfirst/wd201-nodejs-solutions
           path: solution
       - name: Check out the repository with student code
         uses: actions/checkout@v2
@@ -73,7 +73,7 @@ jobs:
         id: copy-submission-files
         continue-on-error: true
         run: |
-          cp submission/index.js solution/index.js
+          cp submission/index.js solution/l3/index.js
       - name: Report missing files to the student
         if: steps.copy-submission-files.outcome != 'success'
         uses: pupilfirst/actions/grading@v1
@@ -88,14 +88,14 @@ jobs:
         id: run-test
         if: steps.copy-submission-files.outcome == 'success'
         run: |
-          cd solution
+          cd solution/l3
           node index.js > output.txt
           node test.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
         if: steps.run-test.outcome == 'success'
         with:
-          report_file_path: "solution/report.json"
+          report_file_path: "solution/l3/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}

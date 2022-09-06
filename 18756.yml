@@ -74,35 +74,35 @@ jobs:
         continue-on-error: true
         id: checkout-solution-repo
         with:
-          repository: mahesh-krishnakumar/wd201-l4-test
+          repository: pupilfirst/wd201-nodejs-solutions
           path: solution
       - name: Copy submission test files to solution
         if: steps.checkout-student-repo.outcome == 'success'
         id: copy-submission-files
         continue-on-error: true
         run: |
-          rm -rf solution/__tests__
-          cp -r submission/__tests__ solution
+          rm -rf solution/l4/__tests__
+          cp -r submission/__tests__ solution/l4
       - name: Run tests in the solution repo
         continue-on-error: true
         id: run-jest-test
         if: steps.copy-submission-files.outcome == 'success'
         run: |
-          cd solution
+          cd solution/l4
           npm install
           npm run test
       - name: Use Node.js to generate report
         id: generate-report
         continue-on-error: true
         run: |
-          cd solution && node generateReportFromResults.js
+          cd solution/l4 && node generateReportFromResults.js
       - name: Report to LMS the outcome of tests.
         uses: pupilfirst/actions/reporting@v1
         if: steps.generate-report.outcome == 'success'
         id: report-test-results
         with:
           status: "completed"
-          report_file_path: "solution/report.json"
+          report_file_path: "solution/l4/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
