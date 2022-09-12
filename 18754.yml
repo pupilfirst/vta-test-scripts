@@ -68,17 +68,26 @@ jobs:
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
-      - name: Copy submission files to solution
+      - name: Copy test files to submission repo
         if: steps.checkout-student-repo.outcome == 'success'
         id: copy-submission-files
         continue-on-error: true
         run: |
-          cp submission/index.js solution/l2/index.js
-          cp submission/home.html solution/l2/home.html
-          cp submission/project.html solution/l2/project.html
-          cp submission/registration.html solution/l2/registration.html
+          cp -r solution/l2/cypress submission
+          cp solution/l2/cypress.config.js submission
+          cp solution/l2/generateReportFromResults.js submission
+          cp solution/l2/package-lock.json submission
+          cp solution/l2/package.json submission
+      - name: Check presence of required files
+        id: check-submission-files
+        continue-on-error: true
+        run: |
+          cat submission/index.js
+          cat submission/home.html
+          cat submission/project.html
+          cat submission/registration.html
       - name: Report missing files to the student
-        if: steps.copy-submission-files.outcome != 'success'
+        if: steps.check-submission-files.outcome != 'success'
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
@@ -91,19 +100,19 @@ jobs:
         id: run-cypress-test
         if: steps.copy-submission-files.outcome == 'success'
         run: |
-          cd solution/l2
+          cd submission
           npm install
           npm run test
       - name: Use Node.js to generate report
         id: generate-report
         continue-on-error: true
         run: |
-          cd solution/l2 && node generateReportFromResults.js
+          cd submission && node generateReportFromResults.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
         if: steps.generate-report.outcome == 'success'
         with:
-          report_file_path: "solution/l2/report.json"
+          report_file_path: "submission/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
