@@ -21,7 +21,7 @@ jobs:
           script: |
             const submission = require('./submission.json')
             const gitURL =  submission.checklist[3].result
-            if (gitURL.split("/").length >= 2) {
+            if ((gitURL.split("/").length >= 2) && gitURL.includes("github.io")) {
               return gitURL
             } else {
               throw "The submitted URL seems to be invalid"
@@ -32,7 +32,7 @@ jobs:
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
-          feedback: The submitted URL is either invalid or private. Please make sure that you submit a valid public URL.
+          feedback: The submitted URL is either invalid or private. Please make sure that you submit a valid public github pages URL.
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
