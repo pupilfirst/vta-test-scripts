@@ -32,7 +32,7 @@ jobs:
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
-          feedback: The submitted URL is either invalid or private. Please make sure that you submit a valid public github pages URL.
+          feedback: The submitted URL is either invalid or private. Please make sure that you submit a valid public GitHub pages URL.
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
