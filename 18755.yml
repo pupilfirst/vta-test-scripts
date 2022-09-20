@@ -83,13 +83,17 @@ jobs:
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
-      - name: Run tests in the solution repo
+      - name: Generate output using the student solution
         continue-on-error: true
         id: run-test
         if: steps.copy-submission-files.outcome == 'success'
         run: |
           cd solution/l3
-          node index.js > output.txt
+          node index.js &> output.txt
+      - name: Run tests in the solution repo
+        continue-on-error: true
+        run: |
+          cd solution/l3
           node test.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
