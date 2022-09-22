@@ -45,7 +45,7 @@ jobs:
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
-      - name: Check out the repository with student code
+      - name: Check out the solutions repository
         uses: actions/checkout@v2
         continue-on-error: true
         id: checkout-solution-repo
