@@ -40,6 +40,7 @@ jobs:
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   tests:
     needs: repo_check
+    timeout-minutes: 5
     if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     steps:

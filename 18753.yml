@@ -41,6 +41,7 @@ jobs:
   tests:
     needs: repo_check
     if: needs.repo_check.outputs.outcome == 'success'
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
       - name: Check out the parent repository with student submission data
