@@ -94,7 +94,7 @@ jobs:
         run: |
           rm -rf solution/models
           cp -r solution/helpers/generateReportFromResults.js solution/l6/generateReportFromResults.js
-          cp -r submission/models/ solution/l6/models/
+          cp -r submission/models/ solution/l6/
           cp submission/app.js solution/l6/app.js
 
       - name: Run tests in the solution repo
