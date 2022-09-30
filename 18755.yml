@@ -86,13 +86,14 @@ jobs:
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Generate output using the student solution
         continue-on-error: true
-        id: run-test
+        id: generate-output
         if: steps.copy-submission-files.outcome == 'success'
         run: |
           cd solution/l3
           node index.js &> output.txt
       - name: Run tests in the solution repo
         continue-on-error: true
+        id: run-test
         run: |
           cd solution/l3
           node test.js
