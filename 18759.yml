@@ -1,4 +1,4 @@
-name: Wd-201 L5 Milestone | Cypress Test
+name: Wd-201 L7 Milestone | Cypress Test
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
             const submission = require('./submission.json')
             const herokuURL =  submission.checklist[0].result
             if ((herokuURL.split("/").length >= 2) && herokuURL.includes("herokuapp.com")) {
-              return gitURL
+              return herokuURL
             } else {
               throw "The submitted URL seems to be invalid"
             }
@@ -51,21 +51,32 @@ jobs:
         with:
           repository: "pupilfirst/wd201-nodejs-solutions"
           path: solution
-      - name: Run tests in the solution repo
-        continue-on-error: true
-        id: run-cypress-test
-        if: steps.copy-submission-files.outcome == 'success'
+      - name: Hack to run cypress on root
         run: |
-          cd solution/l7
-          npm install
-          npm run test
+          cp solution/l7/package.json package.json
+          cp solution/l7/package-lock.json package-lock.json
+      - name: Cypress run with env
+        uses: cypress-io/github-action@v4
+        continue-on-error: true
+        with:
+          browser: chrome
+          project: ./solution/l7
+          env: STUDENT_SUBMISSION_URL=${{needs.repo_check.outputs.submissionUrl}}
       - name: Use Node.js to generate report
         run: |
           cd solution/l7 && node generateReportFromResults.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
         with:
-          report_file_path: "solution/report.json"
+          report_file_path: "solution/l7/report.json"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Report to LMS the outcome of tests.
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "completed"
+          report_file_path: "solution/l7/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
