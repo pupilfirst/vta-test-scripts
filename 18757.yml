@@ -93,6 +93,15 @@ jobs:
         continue-on-error: true
         run: |
           cp submission/models/todo.js solution/l5/models/todo.js
+      - name: Report missing files to the student
+        if: steps.copy-submission-files.outcome != 'success'
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+          feedback: It seems like the repository you submitted is missing a `todo.js` file in the models' folder. Please ensure that the file is present as per the milestone specification.
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Run tests in the solution repo
         continue-on-error: true
         id: run-jest-test
