@@ -96,7 +96,15 @@ jobs:
           cp -r solution/helpers/generateReportFromResults.js solution/l6/generateReportFromResults.js
           cp -r submission/models/ solution/l6/
           cp submission/app.js solution/l6/app.js
-
+      - name: Report missing files to the student
+        if: steps.copy-submission-files.outcome != 'success'
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+          feedback: It seems like the repository you submitted is missing an `app.js` or the models' folder in the root of the repository. Please ensure that they are present as per the milestone specification and the template provided. All the files as per the template must be present in the root of the repository and not in any sub directory.
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Run tests in the solution repo
         continue-on-error: true
         id: run-jest-test
