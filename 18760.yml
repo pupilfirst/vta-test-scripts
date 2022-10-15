@@ -74,7 +74,7 @@ jobs:
         id: copy-submission-files
         continue-on-error: true
         run: |
-          cp submission/views solution/l8/
+          cp -r submission/views solution/l8/
       - name: Check presence of required files
         id: check-submission-files
         continue-on-error: true
@@ -92,7 +92,7 @@ jobs:
         id: run-cypress-test
         if: steps.check-submission-files.outcome == 'success'
         run: |
-          cd solutions/l8
+          cd solution/l8
           npm install
           npm run test
       - name: Use Node.js to generate report
