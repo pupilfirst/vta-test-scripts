@@ -99,7 +99,6 @@ jobs:
         id: generate-report
         continue-on-error: true
         run: |
-          cp solution/helpers/generateReportFromResults.js solution/l8
           cd solution/l8 && node generateReportFromResults.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
