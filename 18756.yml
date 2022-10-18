@@ -84,6 +84,16 @@ jobs:
         run: |
           rm -rf solution/l4/__tests__
           cp -r submission/__tests__ solution/l4
+      - name: Report missing test files to the LMS by rejecting submission.
+        if: steps.copy-submission-files.outcome != 'success'
+        id: missing-submission-files
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+          feedback: The submitted repository URL does not contain one or both of `__tests__` folder and `todo.js` file in the root. Please make sure that your repository contains these items as per the specification.
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Run tests in the solution repo
         continue-on-error: true
         id: run-jest-test
