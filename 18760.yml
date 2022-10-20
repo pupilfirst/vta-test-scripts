@@ -104,4 +104,4 @@ jobs:
         uses: pupilfirst/actions/grading@v1
         if: steps.generate-report.outcome == 'success'
         with:
-          report_file_path: "submission/report.json"
+          report_file_path: "solution/l8/report.json"
