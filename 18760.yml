@@ -54,6 +54,7 @@ jobs:
       - name: Hack to run cypress on root
         run: |
           cp solution/l8/package.json package.json
+          cp solution/l8/package-lock.json package-lock.json
       - name: Cypress run with env
         uses: cypress-io/github-action@v4
         continue-on-error: true
