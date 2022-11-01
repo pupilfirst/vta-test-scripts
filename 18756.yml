@@ -84,6 +84,7 @@ jobs:
         run: |
           rm -rf solution/l4/__tests__
           cp -r submission/__tests__ solution/l4
+          cp submission/todo.js solution/l4/todo.js
       - name: Report missing test files to the LMS by rejecting submission.
         if: steps.copy-submission-files.outcome != 'success'
         id: missing-submission-files
