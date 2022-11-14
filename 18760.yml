@@ -5,7 +5,7 @@ on:
     branches: ["submission-*"]
 
 jobs:
-  repo_check:
+  extract_url:
     runs-on: ubuntu-latest
     outputs:
       outcome: ${{steps.get-submission-url.outcome}}
@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
-      - name: Extract the student submission repo from URL
+      - name: Extract the student submission URL
         uses: actions/github-script@v5
         id: get-submission-url
         continue-on-error: true
@@ -32,8 +32,8 @@ jobs:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   tests:
-    needs: repo_check
-    if: needs.repo_check.outputs.outcome == 'success'
+    needs: extract_url
+    if: needs.extract_url.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Check out the parent repository with student submission data
@@ -53,7 +53,7 @@ jobs:
         with:
           browser: chrome
           project: ./solution/l8
-          env: STUDENT_SUBMISSION_URL=${{needs.repo_check.outputs.submissionUrl}}
+          env: STUDENT_SUBMISSION_URL=${{needs.extract_url.outputs.submissionUrl}}
       - name: Use Node.js to generate report
         run: |
           cd solution/l8 && node generateReportFromResults.js
