@@ -5,40 +5,7 @@ on:
     branches: ["submission-*"]
 
 jobs:
-  repo_check:
-    runs-on: ubuntu-latest
-    outputs:
-      outcome: ${{steps.get-submission-url.outcome}}
-      submissionUrl: ${{steps.get-submission-url.outputs.result}}
-    steps:
-      - name: Check out the parent repository with student submission data
-        uses: actions/checkout@v2
-      - name: Extract the student submission URL
-        uses: actions/github-script@v5
-        id: get-submission-url
-        continue-on-error: true
-        with:
-          script: |
-            const submission = require('./submission.json')
-            const herokuURL =  submission.checklist[0].result
-            if ((herokuURL.split("/").length >= 2) && herokuURL.includes("herokuapp.com")) {
-              return herokuURL
-            } else {
-              throw "The submitted URL seems to be invalid"
-            }
-          result-encoding: string
-      - name: Report invalid repository URL in submission
-        if: steps.get-submission-url.outcome != 'success'
-        uses: pupilfirst/actions/grading@v1
-        with:
-          fail_submission: true
-          feedback: The submitted URL is either unavailable or not a valid Heroku app. Please make sure that you submit a valid Heroku application URL.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   tests:
-    needs: repo_check
-    if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     strategy:
       matrix:
