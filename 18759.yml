@@ -5,7 +5,7 @@ on:
     branches: ["submission-*"]
 
 jobs:
-  repo_check:
+  extract_url:
     runs-on: ubuntu-latest
     outputs:
       outcome: ${{steps.get-submission-url.outcome}}
@@ -13,36 +13,28 @@ jobs:
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
-      - name: Extract the student submission repo from URL
+      - name: Extract the student submission URL
         uses: actions/github-script@v5
         id: get-submission-url
         continue-on-error: true
         with:
           script: |
             const submission = require('./submission.json')
-            const herokuURL =  submission.checklist[0].result
-            if ((herokuURL.split("/").length >= 2) && herokuURL.includes("herokuapp.com")) {
-              return herokuURL
-            } else {
-              throw "The submitted URL seems to be invalid"
-            }
+            return submission.checklist[0].result
           result-encoding: string
       - name: Report invalid repository URL in submission
         if: steps.get-submission-url.outcome != 'success'
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
-          feedback: The submitted URL is either unavailable or not a valid Heroku app. Please make sure that you submit a valid Heroku application URL.
+          feedback: We failed to extract the URL for your live web application from your submission. Please submit again; if this issue persists, please reach out to our team for support.
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   tests:
-    needs: repo_check
-    if: needs.repo_check.outputs.outcome == 'success'
+    needs: extract_url
+    if: needs.extract_url.outputs.outcome == 'success'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        ruby: ["3.1.1"]
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
@@ -61,7 +53,7 @@ jobs:
         with:
           browser: chrome
           project: ./solution/l7
-          env: STUDENT_SUBMISSION_URL=${{needs.repo_check.outputs.submissionUrl}}
+          env: STUDENT_SUBMISSION_URL=${{needs.extract_url.outputs.submissionUrl}}
       - name: Use Node.js to generate report
         run: |
           cd solution/l7 && node generateReportFromResults.js
