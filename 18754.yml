@@ -89,6 +89,7 @@ jobs:
           cat submission/registration.html
       - name: Report missing files to the student
         if: steps.check-submission-files.outcome != 'success'
+        id: report-missing-files
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
@@ -111,7 +112,7 @@ jobs:
           cd submission && node generateReportFromResults.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
-        if: steps.generate-report.outcome == 'success'
+        if: steps.generate-report.outcome == 'success' && steps.report-missing-files.outcome == 'skipped'
         with:
           report_file_path: "submission/report.json"
         env:
