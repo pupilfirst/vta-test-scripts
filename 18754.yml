@@ -62,6 +62,7 @@ jobs:
           path: submission
       - name: Report invalid repository URL in submission
         if: steps.checkout-student-repo.outcome != 'success'
+        id: report-invalid-repo
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
@@ -88,8 +89,7 @@ jobs:
           cat submission/project.html
           cat submission/registration.html
       - name: Report missing files to the student
-        if: steps.check-submission-files.outcome != 'success'
-        id: report-missing-files
+        if: steps.check-submission-files.outcome != 'success' && steps.report-invalid-repo.outcome == 'skipped'
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
@@ -112,7 +112,7 @@ jobs:
           cd submission && node generateReportFromResults.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
-        if: steps.generate-report.outcome == 'success' && steps.report-missing-files.outcome == 'skipped'
+        if: steps.generate-report.outcome == 'success' && steps.report-missing-files.outcome == 'skipped' && steps.report-invalid-repo.outcome == 'skipped'
         with:
           report_file_path: "submission/report.json"
         env:
