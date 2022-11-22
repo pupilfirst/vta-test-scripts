@@ -90,6 +90,7 @@ jobs:
           cat submission/registration.html
       - name: Report missing files to the student
         if: steps.check-submission-files.outcome != 'success' && steps.report-invalid-repo.outcome == 'skipped'
+        id: report-missing-files
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
