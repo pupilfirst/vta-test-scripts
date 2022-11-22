@@ -74,6 +74,7 @@ jobs:
       - name: Report invalid repository URL in submission
         if: steps.checkout-student-repo.outcome != 'success'
         uses: pupilfirst/actions/grading@v1
+        id: report-invalid-repo
         with:
           fail_submission: true
           feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL.
@@ -97,7 +98,8 @@ jobs:
           cp -r submission/models/ solution/l6/
           cp submission/app.js solution/l6/app.js
       - name: Report missing files to the student
-        if: steps.copy-submission-files.outcome != 'success'
+        if: steps.copy-submission-files.outcome != 'success' && steps.report-invalid-repo.outcome == 'skipped'
+        id: report-missing-files
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
@@ -120,7 +122,7 @@ jobs:
           cd solution/l6 && node generateReportFromResults.js
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
-        if: steps.generate-report.outcome == 'success'
+        if: steps.generate-report.outcome == 'success' && steps.report-invalid-repo.outcome == 'skipped' && steps.report-missing-files.outcome == 'skipped'
         with:
           report_file_path: "solution/l6/report.json"
         env:
