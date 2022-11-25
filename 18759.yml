@@ -75,7 +75,7 @@ jobs:
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   extract_url:
     runs-on: ubuntu-latest
-    needs: repo-check
+    needs: repo_check
     if: needs.repo_check.outputs.countStepOutcome == 'success' && needs.repo_check.outputs.rejectSubmissionOutcome == 'skipped'
     outputs:
       outcome: ${{steps.get-submission-url.outcome}}
