@@ -82,7 +82,7 @@ jobs:
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
-          feedback: The submitted repository does not have enough commits to see the history of work. Please ensure that the submitted repository has atleast three commits to show progression from previous level.
+          feedback: The submitted repository does not have enough commits to see the history of your work. You should submit the same repository from Level 6 and upwards. Please ensure that the submitted repository has at least two commits to show progression from previous level.
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
