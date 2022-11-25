@@ -47,6 +47,7 @@ jobs:
         with:
           repository: ${{steps.get-repo-name.outputs.result}}
           path: submission
+          fetch-depth: 0
       - name: Report invalid repository URL in submission
         if: steps.checkout-student-repo.outcome != 'success'
         id: report-invalid-repo
@@ -62,9 +63,21 @@ jobs:
         if: steps.checkout-student-repo.outcome == 'success'
         run: |
           cd submission
+          echo $(git rev-list --count HEAD)
           echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_OUTPUT
+      - name: Check the count of commits and generate outcome
+        uses: actions/github-script@v5
+        id: check-repo-count
+        continue-on-error: true
+        with:
+          script: |
+            const count = ${{steps.get-commit-count.outputs.COMMIT_COUNT}}
+            if (count >= 3) {
+              return 'success'
+            }
+          result-encoding: string
       - name: Reporting insufficient commits in the repo
-        if: steps.get-commit-count.outcome == 'success' && steps.get-commit-count.outputs.COMMIT_COUNT >= 3
+        if: steps.get-commit-count.outcome == 'success' && steps.check-repo-count.outputs.result != 'success'
         id: report-insufficient-commits
         uses: pupilfirst/actions/grading@v1
         with:
