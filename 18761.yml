@@ -139,34 +139,6 @@ jobs:
         with:
           repository: pupilfirst/wd201-nodejs-solutions
           path: solution
-      - name: Get the count of commits
-        id: get-commit-count
-        if: steps.checkout-student-repo.outcome == 'success'
-        run: |
-          cd submission
-          echo $(git rev-list --count HEAD)
-          echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_OUTPUT
-      - name: Check the count of commits and generate outcome
-        uses: actions/github-script@v5
-        id: check-repo-count
-        continue-on-error: true
-        with:
-          script: |
-            const count = ${{steps.get-commit-count.outputs.COMMIT_COUNT}}
-            if (count >= 4) {
-              return 'success'
-            }
-          result-encoding: string
-      - name: Reporting insufficient commits in the repo
-        if: steps.get-commit-count.outcome == 'success' && steps.check-repo-count.outputs.result != 'success'
-        id: report-insufficient-commits
-        uses: pupilfirst/actions/grading@v1
-        with:
-          fail_submission: true
-          feedback: The submitted repository does not have enough commits to see the history of your work. You should submit the same repository from Level 6 and upwards. Please ensure that the submitted repository has at least four commits to show progression from previous levels.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Copy submission test files to solution
         if: steps.checkout-student-repo.outcome == 'success'
         id: copy-submission-files
