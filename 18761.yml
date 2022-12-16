@@ -1,4 +1,4 @@
-name: WD-201 | L9 Milestone | Test
+name: WD201 Node.js - L9 Milestone
 
 on:
   push:
@@ -7,6 +7,10 @@ on:
 jobs:
   repo_check:
     runs-on: ubuntu-latest
+    outputs:
+      getRepoNameOutcome: ${{steps.get-repo-name.outcome}}
+      rejectSubmissionOutcome: ${{steps.report-insufficient-commits.outcome}}
+      repoName: ${{steps.get-repo-name.outputs.result}}
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
@@ -79,6 +83,107 @@ jobs:
         with:
           fail_submission: true
           feedback: The submitted repository does not have enough commits to see the history of your work. You should submit the same repository from Level 6 and upwards. Please ensure that the submitted repository has at least four commits to show progression from previous levels.
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+  tests:
+    needs: repo_check
+    if: needs.repo_check.outputs.getRepoNameOutcome == 'success' && needs.repo_check.outputs.rejectSubmissionOutcome == 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:11.7
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: todo_db_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      PG_DATABASE: database_test
+      PG_USER: postgres
+      PG_PASSWORD: postgres
+    steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
+      - name: Check out the repository with student code
+        uses: actions/checkout@v2
+        continue-on-error: true
+        id: checkout-student-repo
+        with:
+          repository: ${{needs.repo_check.outputs.repoName}}
+          path: submission
+      - name: Report to LMS tests in progress
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "in_progress"
+          description: "The automated tests are in progress"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Check out the repository with student code
+        uses: actions/checkout@v2
+        continue-on-error: true
+        id: checkout-solution-repo
+        with:
+          repository: pupilfirst/wd201-nodejs-solutions
+          path: solution
+      - name: Copy submission test files to solution
+        if: steps.checkout-student-repo.outcome == 'success'
+        id: copy-submission-files
+        continue-on-error: true
+        run: |
+          rm -rf solution/l9/__tests__
+          cp -r submission/__tests__ solution/l9
+          cp submission/app.js solution/l9/app.js
+          cp -r submission/models solution/l9
+          cp -r submission/views solution/l9
+      - name: Report missing test files to the LMS by rejecting submission.
+        if: steps.copy-submission-files.outcome != 'success'
+        id: missing-submission-files
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+          feedback: The submitted repository URL does not contain one or both of `__tests__` folder and `todo.js` file in the root. Please make sure that your repository contains these items as per the specification.
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Run tests in the solution repo
+        continue-on-error: true
+        id: run-jest-test
+        if: steps.copy-submission-files.outcome == 'success'
+        run: |
+          cd solution/l9
+          npm install
+          npm run test
+      - name: Use Node.js to generate report
+        id: generate-report
+        continue-on-error: true
+        run: |
+          cd solution/l9 && node generateReportFromResults.js
+      - name: Report to LMS the outcome of tests.
+        uses: pupilfirst/actions/reporting@v1
+        if: steps.generate-report.outcome == 'success'
+        id: report-test-results
+        with:
+          status: "completed"
+          report_file_path: "solution/l9/report.json"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Report error to LMS
+        uses: pupilfirst/actions/reporting@v1
+        if: steps.report-test-results.outcome == 'skipped'
+        with:
+          status: "completed"
+          conclusion: "error"
+          description: "Automated tests could not be run successfully"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
