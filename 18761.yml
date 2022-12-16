@@ -7,6 +7,10 @@ on:
 jobs:
   repo_check:
     runs-on: ubuntu-latest
+    outputs:
+      getRepoNameOutcome: ${{steps.get-repo-name.outcome}}
+      rejectSubmissionOutcome: ${{steps.report-insufficient-commits.outcome}}
+      repoName: ${{steps.get-repo-name.outputs.result}}
     steps:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
@@ -84,7 +88,7 @@ jobs:
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   tests:
     needs: repo_check
-    if: needs.repo_check.outputs.outcome == 'success'
+    if: needs.repo_check.outputs.getRepoNameOutcome == 'success' && needs.repo_check.outputs.rejectSubmissionOutcome == 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     services:
