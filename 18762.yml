@@ -177,6 +177,14 @@ jobs:
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+      - name: Grade the submission based on test results
+        uses: pupilfirst/actions/grading@v1
+        if: steps.generate-report.outcome == 'success'
+        with:
+          report_file_path: "solution/l10/report.json"
+        env:
+          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Report error to LMS
         uses: pupilfirst/actions/reporting@v1
         if: steps.report-test-results.outcome == 'skipped'
