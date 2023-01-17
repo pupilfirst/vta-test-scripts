@@ -146,6 +146,7 @@ jobs:
           cp -r submission/migrations solution/l10
           cp -r submission/models solution/l10
           cp -r submission/views solution/l10
+          cp -r submission/package.json solution/l10/package.json
       - name: Report missing test files to the LMS by rejecting submission.
         if: steps.copy-submission-files.outcome != 'success'
         id: missing-submission-files
