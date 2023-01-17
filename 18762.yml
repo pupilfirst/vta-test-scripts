@@ -152,7 +152,7 @@ jobs:
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
-          feedback: The submitted repository URL does not contain one or both of `__tests__` folder and `todo.js` file in the root. Please make sure that your repository contains these items as per the specification.
+          feedback: The submitted repository URL does not contain one or more of the directories/files required for the application. Please make sure that your repository contains folders __tests__, migrations, models, views and file app.js.
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
