@@ -9,62 +9,28 @@ env:
   REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
 
 jobs:
-  repo_check:
-    runs-on: ubuntu-latest
-    outputs:
-      outcome: ${{steps.get-repo-name.outcome}}
-      repoName: ${{steps.get-repo-name.outputs.result}}
-    steps:
-      - name: Check out the parent repository with student submission data
-        uses: actions/checkout@v2
-      - name: Extract the student submission repo from URL
-        uses: actions/github-script@v5
-        id: get-repo-name
-        continue-on-error: true
-        with:
-          script: |
-            const submission = require('./submission.json')
-            const gitURL =  submission.checklist[0].result
-            const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g
-            const repoName = regex.exec(gitURL)[1].replace(/.git$|\/$/, "")
-            if (repoName.split("/").length == 2) {
-              return repoName
-            } else {
-              throw "The submitted URL seems to be of a folder inside a repository"
-            }
-          result-encoding: string
-      - name: Report invalid repository URL in submission
-        if: steps.get-repo-name.outcome != 'success'
-        uses: pupilfirst/actions/grading@v1
-        with:
-          fail_submission: true
-          feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL and not a link to directory or branch.
   tests:
-    needs: repo_check
-    if: needs.repo_check.outputs.outcome == 'success'
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the parent repository with student submission data
-        uses: actions/checkout@v2
       - name: Checkout student repo and verify its structure
         if: steps.get-repo-name.outcome === 'success'
+        id: checkout-student-repo
         uses: pupilfirst/actions/check_repo@check-repo
         with:
-          repoUrl: ${{needs.repo_check.outputs.repoName}}
+          repoPath: submission
           globs: |
             .gitignore
             hello-world/index.js
             hello-world/package.json
-          repoPath: submission
       - name: Check submission output using Node
-        if: steps.checkout-student-repo.outcome == 'success'
+        if: steps.checkout-student-repo.outcome === 'success'
         id: check-function-output
         run: |
           node submission/hello-world/index.js > output.txt
         continue-on-error: true
       - name: Report failure to run script
-        if: steps.check-function-output.outcome == 'failure'
+        if: steps.check-function-output.outcome === 'failure'
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
@@ -82,7 +48,7 @@ jobs:
       - name: Generate feedback report using script output
         uses: actions/github-script@v6
         id: generate-report
-        if: steps.check-function-output.outcome == 'success'
+        if: steps.check-function-output.outcome === 'success'
         with:
           script: |
             const fs = require("fs");
@@ -111,6 +77,6 @@ jobs:
             })
       - name: Grade the submission based on test results
         uses: pupilfirst/actions/grading@v1
-        if: steps.generate-report.outcome == 'success'
+        if: steps.generate-report.outcome === 'success'
         with:
           report_file_path: "report.json"
