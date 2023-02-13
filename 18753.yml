@@ -23,7 +23,7 @@ jobs:
             hello-world/index.js
             hello-world/package.json
       - name: Check submission output using Node
-        if: steps.check-student-repo.outcome == 'success'
+        if: steps.check-student-repo.outputs.isValid
         id: check-submission-output
         run: |
           node submission/hello-world/index.js > output.txt
