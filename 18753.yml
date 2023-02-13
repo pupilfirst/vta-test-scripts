@@ -14,8 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout student repo and verify its structure
-        if: steps.get-repo-name.outcome == 'success'
-        id: checkout-student-repo
+        id: check-student-repo
         uses: pupilfirst/actions/check_repo@check-repo
         with:
           repoPath: submission
@@ -24,13 +23,13 @@ jobs:
             hello-world/index.js
             hello-world/package.json
       - name: Check submission output using Node
-        if: steps.checkout-student-repo.outcome == 'success'
-        id: check-function-output
+        if: steps.check-student-repo.outcome == 'success'
+        id: check-submission-output
         run: |
           node submission/hello-world/index.js > output.txt
         continue-on-error: true
       - name: Report failure to run script
-        if: steps.check-function-output.outcome == 'failure'
+        if: steps.check-submission-output.outcome == 'failure'
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
@@ -48,7 +47,7 @@ jobs:
       - name: Generate feedback report using script output
         uses: actions/github-script@v6
         id: generate-report
-        if: steps.check-function-output.outcome == 'success'
+        if: steps.check-submission-output.outcome == 'success'
         with:
           script: |
             const fs = require("fs");
