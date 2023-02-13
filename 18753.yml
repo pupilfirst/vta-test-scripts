@@ -63,8 +63,8 @@ jobs:
                 let passed = checkValidString(data);
                 let reportFile = "./report.json";
                 let feedback = passed
-                  ? "Good work! It looks like your code prints the output according to the specification"
-                  : "Uh oh! It looks like you've missed some parts of the assignment! Please ensure that the program outputs the expected message in the lesson and try again.";
+                  ? "Good work! It looks like your code prints the output according to the specification."
+                  : "Uh oh! It looks like you've missed some parts of the assignment! Please ensure that your `index.js` script outputs the expected message mentioned in the assignment and try again.";
                 let report = {
                   version: 0,
                   grade: passed ? "accept" : "reject",
