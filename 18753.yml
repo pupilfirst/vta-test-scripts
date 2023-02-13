@@ -23,7 +23,7 @@ jobs:
             hello-world/index.js
             hello-world/package.json
       - name: Check submission output using Node
-        if: steps.check-student-repo.outputs.missingPaths == ''
+        if: ${{ steps.check-student-repo.outputs.cloneOutcome == 'success' && steps.check-student-repo.outputs.missingPaths == '' }}
         id: check-submission-output
         run: |
           node submission/hello-world/index.js > output.txt
