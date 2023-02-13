@@ -18,7 +18,7 @@ jobs:
         uses: pupilfirst/actions/check_repo@check-repo
         with:
           repoPath: submission
-          globs: |
+          globs: |-
             .gitignore
             hello-world/index.js
             hello-world/package.json
