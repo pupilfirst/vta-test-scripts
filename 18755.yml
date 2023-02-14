@@ -22,7 +22,7 @@ jobs:
             .gitignore
             hello-world/*
             http-server/*
-            todo-cli/index.js
+            todo-cli/todo.js
       - name: Check out the solutions repo
         if: ${{ steps.check-student-repo.outputs.result == 'success' }}
         id: copy-solutions-repo
