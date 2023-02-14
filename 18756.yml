@@ -69,6 +69,21 @@ jobs:
         with:
           status: "completed"
           report_file_path: "solution/l4/report.json"
+      - name: Reject submission if tests did not run successfully
+        uses: pupilfirst/actions/grading@v1
+        if: steps.run-jest-test.outcome == 'failure'
+        with:
+          fail_submission: true
+          feedback: |
+            We tried to run tests using the command `npm run test`, but for
+            some reason, the attempt to run the command failed. Before
+            submitting again, could you please verify whether running `npm run test`
+            on your local machine succeeds?
+
+            If `npm run test` results in no errors or tests failures, please
+            ask for assistance on the **#wd-forum** channel on the Pupilfirst
+            School Discord server, and one of our team members will take a look
+            at why we're unable to execute your code.
       - name: Report error to LMS
         uses: pupilfirst/actions/reporting@v1
         if: ${{ steps.checkout-solutions-repo.outcome == 'success' && steps.report-test-results.outcome == 'skipped' }}
