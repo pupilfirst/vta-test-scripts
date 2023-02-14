@@ -25,13 +25,13 @@ jobs:
             todo-cli/todo.js
       - name: Check out the solutions repo
         if: ${{ steps.check-student-repo.outputs.result == 'success' }}
-        id: copy-solutions-repo
+        id: checkout-solutions-repo
         uses: actions/checkout@v2
         with:
           repository: pupilfirst/wd201-nodejs-solutions
           path: solution
       - name: Copy submission files to solution
-        if: steps.copy-solutions-repo.outcome == 'success'
+        if: steps.checkout-solutions-repo.outcome == 'success'
         id: copy-submission-files
         run: |
           cp submission/todo-cli/todo.js solution/l3/index.js

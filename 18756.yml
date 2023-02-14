@@ -1,100 +1,53 @@
-name: WD201 Node.js - L4 Milestone
+name: WD-201 | L4 Milestone
 
 on:
   push:
     branches: ["submission-*"]
 
+env:
+  REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+  REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+
 jobs:
-  repo_check:
-    runs-on: ubuntu-latest
-    outputs:
-      outcome: ${{steps.get-repo-name.outcome}}
-      repoName: ${{steps.get-repo-name.outputs.result}}
-    steps:
-      - name: Check out the parent repository with student submission data
-        uses: actions/checkout@v2
-      - name: Extract the student submission repo from URL
-        uses: actions/github-script@v5
-        id: get-repo-name
-        continue-on-error: true
-        with:
-          script: |
-            const submission = require('./submission.json')
-            const gitURL =  submission.checklist[0].result
-            const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g
-            const repoName = regex.exec(gitURL)[1].replace(/.git$|\/$/, "")
-            if (repoName.split("/").length == 2) {
-              return repoName
-            } else {
-              throw "The submitted URL seems to be of a folder inside a repository"
-            }
-          result-encoding: string
-      - name: Report invalid repository URL in submission
-        if: steps.get-repo-name.outcome != 'success'
-        uses: pupilfirst/actions/grading@v1
-        with:
-          fail_submission: true
-          feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL and not a link to directory or branch.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   tests:
-    needs: repo_check
-    if: needs.repo_check.outputs.outcome == 'success'
-    runs-on: ubuntu-latest
     timeout-minutes: 5
+    runs-on: ubuntu-latest
     steps:
-      - name: Check out the parent repository with student submission data
-        uses: actions/checkout@v2
-      - name: Check out the repository with student code
-        uses: actions/checkout@v2
-        continue-on-error: true
-        id: checkout-student-repo
+      - name: Checkout student repo and verify its structure
+        id: check-student-repo
+        uses: pupilfirst/actions/check_repo@check-repo
         with:
-          repository: ${{needs.repo_check.outputs.repoName}}
-          path: submission
-      - name: Report invalid repository URL in submission
-        if: steps.checkout-student-repo.outcome != 'success'
-        uses: pupilfirst/actions/grading@v1
-        with:
-          fail_submission: true
-          feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+          repoPath: submission
+          globs: |-
+            .gitignore
+            hello-world/*
+            http-server/*
+            todo-cli/.husky/pre-commit
+            todo-cli/__tests__/todo.js
+            todo-cli/.eslintrc.json
+            todo-cli/package.json
+            todo-cli/package-lock.json
+            todo-cli/todo.js
       - name: Report to LMS tests in progress
+        if: ${{ steps.check-student-repo.outputs.result == 'success' }}
         uses: pupilfirst/actions/reporting@v1
         with:
           status: "in_progress"
-          description: "The automated tests are in progress"
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
-      - name: Check out the repository with student code
+          description: "Automated tests are in progress."
+      - name: Check out the solutions repo
+        if: ${{ steps.check-student-repo.outputs.result == 'success' }}
+        id: checkout-solutions-repo
         uses: actions/checkout@v2
-        continue-on-error: true
-        id: checkout-solution-repo
         with:
           repository: pupilfirst/wd201-nodejs-solutions
           path: solution
       - name: Copy submission test files to solution
-        if: steps.checkout-student-repo.outcome == 'success'
+        if: steps.checkout-solutions-repo.outcome == 'success'
         id: copy-submission-files
-        continue-on-error: true
         run: |
           rm -rf solution/l4/__tests__
-          cp -r submission/__tests__ solution/l4
-          cp submission/todo.js solution/l4/todo.js
-      - name: Report missing test files to the LMS by rejecting submission.
-        if: steps.copy-submission-files.outcome != 'success'
-        id: missing-submission-files
-        uses: pupilfirst/actions/grading@v1
-        with:
-          fail_submission: true
-          feedback: The submitted repository URL does not contain one or both of `__tests__` folder and `todo.js` file in the root. Please make sure that your repository contains these items as per the specification.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+          cp -r submission/todo-cli/__tests__ solution/l4
+          cp submission/todo-cli/todo.js solution/l4/todo.js
       - name: Run tests in the solution repo
         continue-on-error: true
         id: run-jest-test
@@ -104,6 +57,7 @@ jobs:
           npm install
           npm run test
       - name: Use Node.js to generate report
+        if: steps.run-jest-test.outcome == 'success'
         id: generate-report
         continue-on-error: true
         run: |
@@ -120,11 +74,8 @@ jobs:
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Report error to LMS
         uses: pupilfirst/actions/reporting@v1
-        if: steps.report-test-results.outcome == 'skipped'
+        if: ${{ steps.checkout-solutions-repo.outcome == 'success' && steps.report-test-results.outcome == 'skipped' }}
         with:
           status: "completed"
           conclusion: "error"
           description: "Automated tests could not be run successfully"
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
