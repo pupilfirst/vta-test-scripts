@@ -69,9 +69,6 @@ jobs:
         with:
           status: "completed"
           report_file_path: "solution/l4/report.json"
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Report error to LMS
         uses: pupilfirst/actions/reporting@v1
         if: ${{ steps.checkout-solutions-repo.outcome == 'success' && steps.report-test-results.outcome == 'skipped' }}
