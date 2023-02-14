@@ -27,11 +27,14 @@ jobs:
             http-server/project.html
             http-server/registration.html
       - name: Check out the solutions repo
+        if: ${{ steps.check-student-repo.outputs.result == 'success' }}
+        id: copy-solutions-repo
         uses: actions/checkout@v2
         with:
           repository: pupilfirst/wd201-nodejs-solutions
           path: solution
       - name: Copy test files to submission repo
+        if: steps.copy-solutions-repo.outcome == 'success'
         continue-on-error: true
         run: |
           cp -r solution/l2/cypress submission/http-server
@@ -40,6 +43,7 @@ jobs:
           cp solution/l2/package-lock.json submission/http-server
           cp solution/l2/package.json submission/http-server
       - name: Run tests in the solution repo
+        if: steps.copy-solutions-repo.outcome == 'success'
         continue-on-error: true
         id: run-cypress-test
         run: |
@@ -47,6 +51,7 @@ jobs:
           npm install
           npm run test
       - name: Use Node.js to generate report
+        if: steps.copy-solutions-repo.outcome == 'success'
         id: generate-report
         continue-on-error: true
         run: |

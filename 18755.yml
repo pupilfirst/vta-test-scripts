@@ -24,22 +24,25 @@ jobs:
             http-server/*
             todo-cli/index.js
       - name: Check out the solutions repo
+        if: ${{ steps.check-student-repo.outputs.result == 'success' }}
+        id: copy-solutions-repo
         uses: actions/checkout@v2
         with:
           repository: pupilfirst/wd201-nodejs-solutions
           path: solution
       - name: Copy submission files to solution
+        if: steps.copy-solutions-repo.outcome == 'success'
         id: copy-submission-files
         run: |
           cp submission/todo-cli/todo.js solution/l3/index.js
       - name: Generate output using the student solution
         continue-on-error: true
-        id: generate-output
         if: steps.copy-submission-files.outcome == 'success'
         run: |
           cd solution/l3
           node index.js &> output.txt
       - name: Run tests in the solution repo
+        if: steps.copy-submission-files.outcome == 'success'
         continue-on-error: true
         id: run-test
         run: |
