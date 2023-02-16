@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@check-repo
+        uses: pupilfirst/actions/check_repo@v1
         with:
           repoPath: submission
           globs: |-
@@ -69,7 +69,7 @@ jobs:
         with:
           status: "completed"
           report_file_path: "solution/l4/report.json"
-      - name: Reject submission if tests did not run successfully
+      - name: Reject submission if attempt to run tests crashed
         uses: pupilfirst/actions/grading@v1
         if: steps.run-jest-test.outcome == 'failure'
         with:

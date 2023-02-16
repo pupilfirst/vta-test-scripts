@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@check-repo
+        uses: pupilfirst/actions/check_repo@v1
         with:
           repoPath: submission
           globs: |-
