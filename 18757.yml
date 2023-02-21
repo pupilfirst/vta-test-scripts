@@ -64,14 +64,13 @@ jobs:
           cp submission/todo-cli/models/todo.js solution/l5/models/todo.js
       - name: Run tests in the solution repo
         continue-on-error: true
-        id: run-jest-test
         if: steps.copy-submission-files.outcome == 'success'
         run: |
           cd solution/l5
           npm install
           npm run test
       - name: Use Node.js to generate report
-        if: steps.run-jest-test.outcome == 'success'
+        if: steps.copy-submission-files.outcome == 'success'
         id: generate-report
         run: |
           cd solution/l5 && node generateReportFromResults.js
