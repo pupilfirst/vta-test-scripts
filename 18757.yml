@@ -48,6 +48,7 @@ jobs:
             todo-cli/completeTodo.js
             todo-cli/addTodo.js
             todo-cli/migrations/*-create-todo.js
+            todo-cli/models/index.js
             todo-cli/models/todo.js
       - name: Check out the solutions repo
         if: ${{ steps.check-student-repo.outputs.result == 'success' }}
