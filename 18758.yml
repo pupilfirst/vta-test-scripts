@@ -49,6 +49,7 @@ jobs:
             todo-app/package.json
             todo-app/package-lock.json
       - name: Check out the solutions repo
+        if: ${{ steps.check-student-repo.outputs.result == 'success' }}
         uses: actions/checkout@v2
         id: checkout-solutions-repo
         with:
