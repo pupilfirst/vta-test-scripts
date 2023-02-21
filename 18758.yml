@@ -43,7 +43,7 @@ jobs:
             todo-app/.husky/pre-commit
             todo-app/models/index.js
             todo-app/models/todo.js
-            todo-cli/migrations/*-create-todo.js
+            todo-app/migrations/*-create-todo.js
             todo-app/app.js
             todo-app/index.js
             todo-app/package.json
