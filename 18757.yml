@@ -60,7 +60,7 @@ jobs:
         if: steps.checkout-solutions-repo.outcome == 'success'
         id: copy-submission-files
         run: |
-          cp submission/models/todo.js solution/l5/models/todo.js
+          cp submission/todo-cli/models/todo.js solution/l5/models/todo.js
       - name: Run tests in the solution repo
         continue-on-error: true
         id: run-jest-test
