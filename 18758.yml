@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@exact-missing-paths
+        uses: pupilfirst/actions/check_repo@v1
         with:
           repoPath: submission
           globs: |-
