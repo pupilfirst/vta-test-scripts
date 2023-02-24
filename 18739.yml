@@ -1,8 +1,12 @@
-name: Wd-101 Capstone | Cypress Test
+name: W101 - Capstone
 
 on:
   push:
     branches: ["submission-*"]
+
+env:
+  REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+  REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
 
 jobs:
   repo_check:
@@ -20,50 +24,58 @@ jobs:
         with:
           script: |
             const submission = require('./submission.json')
-            const gitURL =  submission.checklist[3].result
+            const gitURL =  submission.checklist[1].result
             if ((gitURL.split("/").length >= 2) && gitURL.includes("github.io")) {
               return gitURL
             } else {
-              throw "The submitted URL seems to be invalid"
+              throw "The submitted webpage URL seems to be invalid."
             }
           result-encoding: string
-      - name: Report invalid repository URL in submission
+      - name: Report invalid webpage URL in submission
         if: steps.get-submission-url.outcome != 'success'
         uses: pupilfirst/actions/grading@v1
         with:
           fail_submission: true
-          feedback: The submitted URL is either invalid or private. Please make sure that you submit a valid public GitHub pages URL.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+          feedback: |
+            The URL you submitted is either invalid or does not look like a
+            GitHub pages URL. Please make sure that you submit a GitHub Pages
+            URL, which should look something like this: `https://USERNAME.github.io/wd101`.
   tests:
     needs: repo_check
     if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: ["3.1.1"]
+        ruby: ["3.2.1"]
     steps:
-      - name: Check out the parent repository with student submission data
-        uses: actions/checkout@v2
+      - name: Checkout student repo and verify its structure
+        id: check-student-repo
+        uses: pupilfirst/actions/check_repo@v1
+        with:
+          repoPath: submission
+          globs: |-
+            index.html
+            index.js
       - name: Check out the repository with solutions and tests
+        if: ${{ steps.check-student-repo.outputs.result == 'success' }}
+        id: checkout-solutions-repo
         uses: actions/checkout@v2
         with:
           repository: "pupilfirst/wd101-capstone-test"
           path: solution
       - name: Report to LMS tests in progress
+        if: steps.checkout-solutions-repo.outcome == 'success'
         uses: pupilfirst/actions/reporting@v1
         with:
           status: "in_progress"
           description: "The automated tests are in progress"
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Hack to run cypress on root
+        if: steps.checkout-solutions-repo.outcome == 'success'
         run: |
           cp solution/package.json package.json
           cp solution/package-lock.json package-lock.json
       - name: Cypress run with env
+        if: steps.checkout-solutions-repo.outcome == 'success'
         uses: cypress-io/github-action@v4
         continue-on-error: true
         with:
@@ -71,20 +83,17 @@ jobs:
           project: ./solution
           env: STUDENT_SUBMISSION_URL=${{needs.repo_check.outputs.submissionUrl}}
       - name: Use Node.js to generate report
+        if: steps.checkout-solutions-repo.outcome == 'success'
         run: |
           cd solution && node generateReportFromResults.js
       - name: Grade the submission based on test results
+        if: steps.checkout-solutions-repo.outcome == 'success'
         uses: pupilfirst/actions/grading@v1
         with:
           report_file_path: "solution/report.json"
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Report to LMS the outcome of tests.
+        if: steps.checkout-solutions-repo.outcome == 'success'
         uses: pupilfirst/actions/reporting@v1
         with:
           status: "completed"
           report_file_path: "solution/report.json"
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
