@@ -40,6 +40,7 @@ jobs:
             hello-world/*
             http-server/*
             todo-cli/*
+            todo-app/__tests__/todos.js
             todo-app/.husky/pre-commit
             todo-app/models/index.js
             todo-app/models/todo.js
