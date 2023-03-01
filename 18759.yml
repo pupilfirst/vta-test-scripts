@@ -52,6 +52,7 @@ jobs:
             todo-app/models/index.js
             todo-app/models/todo.js
             todo-app/migrations/*-create-todo.js
+            todo-app/public/css/styles.css
             todo-app/views/footer.ejs
             todo-app/views/header.ejs
             todo-app/views/index.ejs
