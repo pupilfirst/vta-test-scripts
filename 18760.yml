@@ -1,95 +1,16 @@
-name: WD-201 | L8 Milestone | Test
+name: WD201 Node.js - L8 Milestone
 
 on:
   push:
     branches: ["submission-*"]
 
+env:
+  REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+  REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+
 jobs:
-  repo_check:
-    runs-on: ubuntu-latest
-    outputs:
-      countStepOutcome: ${{steps.get-repo-name.outcome}}
-      rejectSubmissionOutcome: ${{steps.report-insufficient-commits.outcome}}
-      repoName: ${{steps.get-repo-name.outputs.result}}
-    steps:
-      - name: Check out the parent repository with student submission data
-        uses: actions/checkout@v2
-      - name: Extract the student submission repo from URL
-        uses: actions/github-script@v5
-        id: get-repo-name
-        continue-on-error: true
-        with:
-          script: |
-            const submission = require('./submission.json')
-            const gitURL =  submission.checklist[1].result
-            const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g
-            const repoName = regex.exec(gitURL)[1].replace(/.git$|\/$/, "")
-            if (repoName.split("/").length == 2) {
-              return repoName
-            } else {
-              throw "The submitted URL seems to be of a folder inside a repository"
-            }
-          result-encoding: string
-      - name: Report invalid repository URL in submission
-        if: steps.get-repo-name.outcome != 'success'
-        uses: pupilfirst/actions/grading@v1
-        with:
-          fail_submission: true
-          feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL and not a link to directory or branch.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
-      - name: Check out the repository with student code
-        uses: actions/checkout@v2
-        if: steps.get-repo-name.outcome == 'success'
-        continue-on-error: true
-        id: checkout-student-repo
-        with:
-          repository: ${{steps.get-repo-name.outputs.result}}
-          path: submission
-          fetch-depth: 0
-      - name: Report invalid repository URL in submission
-        if: steps.checkout-student-repo.outcome != 'success'
-        id: report-invalid-repo
-        uses: pupilfirst/actions/grading@v1
-        with:
-          fail_submission: true
-          feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
-      - name: Get the count of commits
-        id: get-commit-count
-        if: steps.checkout-student-repo.outcome == 'success'
-        run: |
-          cd submission
-          echo $(git rev-list --count HEAD)
-          echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_OUTPUT
-      - name: Check the count of commits and generate outcome
-        uses: actions/github-script@v5
-        id: check-repo-count
-        continue-on-error: true
-        with:
-          script: |
-            const count = ${{steps.get-commit-count.outputs.COMMIT_COUNT}}
-            if (count >= 3) {
-              return 'success'
-            }
-          result-encoding: string
-      - name: Reporting insufficient commits in the repo
-        if: steps.get-commit-count.outcome == 'success' && steps.check-repo-count.outputs.result != 'success'
-        id: report-insufficient-commits
-        uses: pupilfirst/actions/grading@v1
-        with:
-          fail_submission: true
-          feedback: The submitted repository does not have enough commits to see the history of your work. You should submit the same repository from Level 6 and upwards. Please ensure that the submitted repository has at least three commits to show progression from previous level.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   extract_url:
     runs-on: ubuntu-latest
-    needs: repo_check
-    if: needs.repo_check.outputs.countStepOutcome == 'success' && needs.repo_check.outputs.rejectSubmissionOutcome == 'skipped'
     outputs:
       outcome: ${{steps.get-submission-url.outcome}}
       submissionUrl: ${{steps.get-submission-url.outputs.result}}
@@ -103,7 +24,7 @@ jobs:
         with:
           script: |
             const submission = require('./submission.json')
-            return submission.checklist[0].result
+            return submission.checklist[1].result
           result-encoding: string
       - name: Report invalid repository URL in submission
         if: steps.get-submission-url.outcome != 'success'
@@ -111,26 +32,55 @@ jobs:
         with:
           fail_submission: true
           feedback: We failed to extract the URL for your live web application from your submission. Please submit again; if this issue persists, please reach out to our team for support.
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
   tests:
     needs: extract_url
     if: needs.extract_url.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the parent repository with student submission data
-        uses: actions/checkout@v2
+      - name: Checkout student repo and verify its structure
+        id: check-student-repo
+        uses: pupilfirst/actions/check_repo@v1
+        with:
+          repoPath: submission
+          globs: |-
+            .gitignore
+            hello-world/*
+            http-server/*
+            todo-cli/*
+            todo-app/__tests__/todos.js
+            todo-app/.husky/pre-commit
+            todo-app/models/index.js
+            todo-app/models/todo.js
+            todo-app/migrations/*-create-todo.js
+            todo-app/public/css/styles.css
+            todo-app/views/footer.ejs
+            todo-app/views/header.ejs
+            todo-app/views/index.ejs
+            todo-app/views/todos.ejs
+            todo-app/app.js
+            todo-app/index.js
+            todo-app/package.json
+            todo-app/package-lock.json
+      - name: Report to LMS that tests are in progress
+        if: steps.check-student-repo.outputs.result == 'success'
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: "in_progress"
+          description: "Automated tests are in progress"
       - name: Check out the repository with solutions and tests
+        if: steps.check-student-repo.outputs.result == 'success'
+        id: checkout-solutions-repo
         uses: actions/checkout@v2
         with:
           repository: "pupilfirst/wd201-nodejs-solutions"
           path: solution
       - name: Hack to run cypress on root
+        if: steps.checkout-solutions-repo.outcome == 'success'
         run: |
           cp solution/l8/package.json package.json
           cp solution/l8/package-lock.json package-lock.json
       - name: Cypress run with env
+        if: steps.checkout-solutions-repo.outcome == 'success'
         uses: cypress-io/github-action@v4
         continue-on-error: true
         with:
@@ -138,20 +88,17 @@ jobs:
           project: ./solution/l8
           env: STUDENT_SUBMISSION_URL=${{needs.extract_url.outputs.submissionUrl}}
       - name: Use Node.js to generate report
+        if: steps.checkout-solutions-repo.outcome == 'success'
         run: |
           cd solution/l8 && node generateReportFromResults.js
       - name: Grade the submission based on test results
+        if: steps.checkout-solutions-repo.outcome == 'success'
         uses: pupilfirst/actions/grading@v1
         with:
           report_file_path: "solution/l8/report.json"
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Report to LMS the outcome of tests.
+        if: steps.checkout-solutions-repo.outcome == 'success'
         uses: pupilfirst/actions/reporting@v1
         with:
           status: "completed"
           report_file_path: "solution/l8/report.json"
-        env:
-          REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
-          REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
