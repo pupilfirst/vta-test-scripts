@@ -49,7 +49,7 @@ jobs:
             todo-app/views/footer.ejs
             todo-app/views/header.ejs
             todo-app/views/index.ejs
-            todo-app/views/todos.ejs
+            todo-app/views/todo*
             todo-app/app.js
             todo-app/index.js
             todo-app/package.json
