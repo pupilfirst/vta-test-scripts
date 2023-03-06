@@ -1,0 +1,56 @@
+name: WD101 L5 Test Runner
+on:
+  push:
+    branches: ["submission-*"]
+env:
+  REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+  REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+jobs:
+  tests:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check out the solutions repo
+        id: checkout-solutions-repo
+        uses: actions/checkout@v2
+        with:
+          repository: pupilfirst/wd101-test-scripts
+          path: solution
+      - name: Copy script.js to solution
+        id: copy-script
+        run: |
+          cp -r script.js solution/script.js
+      - name: Report invalid JS file to the LMS by rejecting submission.
+        if: steps.copy-script.outcome != 'success'
+        id: invalid-js-file
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+          feedback: |
+            Hi there. We tried to test the file that you submitted. Unfortunately, it didn't work as expected.
+            We are unable process your input, as the uploaded file is not a valid JS file. Please create another
+            submission with your JS file. Once you upload the file, we'll test the file to check if it returns
+            the correct output
+
+            Give it another go!
+      - name: Run tests in the solution repo
+        if: steps.copy-script.outcome == 'success'
+        continue-on-error: true
+        id: run-test
+        run: |
+          cd solution
+          cp -r L5/script.test.js ./script.test.js
+          npm install
+          npm run test
+      - name: Generate feedback from test results
+        if: steps.run-test.outcome == 'success'
+        id: generate-feedback
+        run: |
+          cd solution
+          node generateReportFromResults.js
+      - name: Grade the submission based on test results
+        if: steps.generate-feedback.outcome == 'success'
+        uses: pupilfirst/actions/grading@v1
+        with:
+          report_file_path: "solution/report.json"
