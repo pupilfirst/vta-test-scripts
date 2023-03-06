@@ -1,0 +1,27 @@
+name: VTA Test Runner
+on:
+  push:
+    branches: ["submission-*"]
+env:
+  REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+  REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+jobs:
+  tests:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the solutions repo
+        if: ${{ steps.check-student-repo.outputs.result == 'success' }}
+        id: checkout-solutions-repo
+        uses: actions/checkout@v2
+        with:
+          repository: pupilfirst/wd101-test-scripts
+          path: solution
+      - name: Run tests in the solution repo
+        if: steps.checkout-solutions-repo.outcome == 'success'
+        continue-on-error: true
+        id: run-test
+        run: |
+          cd solution
+          npm install
+          npm run test
