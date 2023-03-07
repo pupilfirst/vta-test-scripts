@@ -72,10 +72,10 @@ jobs:
         id: copy-submission-files
         run: |
           rm -rf solution/l9/__tests__
-          cp -r submission/__tests__ solution/l9
-          cp submission/app.js solution/l9/app.js
-          cp -r submission/models solution/l9
-          cp -r submission/views solution/l9
+          cp -r submission/todo-app/__tests__ solution/l9
+          cp submission/todo-app/app.js solution/l9/app.js
+          cp -r submission/todo-app/models solution/l9
+          cp -r submission/todo-app/views solution/l9
       - name: Run tests in the solution repo
         if: steps.copy-submission-files.outcome == 'success'
         continue-on-error: true
