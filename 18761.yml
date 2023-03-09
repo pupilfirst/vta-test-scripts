@@ -101,9 +101,12 @@ jobs:
         uses: pupilfirst/actions/grading@v1
         with:
           report_file_path: "solution/l9/report.json"
-      - name: Report test completion to LMS
-        if: steps.check-student-repo.outputs.result == 'success'
+      - name: Report error to LMS
+        if: steps.report-test-results.outcome == 'skipped'
         uses: pupilfirst/actions/reporting@v1
         with:
-          status: completed
-          report_file_path: "solution/l9/report.json"
+          status: "completed"
+          conclusion: "error"
+          description: |
+            Automated tests could not be run successfully. Please ask a member
+            of the Pupilfirst team to look into this submission's VTA logs.
