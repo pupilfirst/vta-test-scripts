@@ -1,0 +1,100 @@
+name: WD301 - L3 Milestone
+
+on:
+  push:
+    branches: ["submission-*"]
+
+env:
+  REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+  REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+
+jobs:
+  repo_check:
+    runs-on: ubuntu-latest
+    outputs:
+      outcome: ${{steps.get-submission-url.outcome}}
+      submissionUrl: ${{steps.get-submission-url.outputs.result}}
+    steps:
+      - name: Check out the parent repository with student submission data
+        uses: actions/checkout@v2
+      - name: Extract the student submission repo from URL
+        uses: actions/github-script@v5
+        id: get-submission-url
+        continue-on-error: true
+        with:
+          script: |
+            const submission = require('./submission.json')
+            const netlifyUrl = submission.checklist[1].result
+            if (netlifyUrl.includes("netlify.app")) {
+              return netlifyUrl
+            } else {
+              throw "The submitted webpage URL seems to be invalid."
+            }
+          result-encoding: string
+      - name: Report invalid webpage URL in submission
+        if: steps.get-submission-url.outcome != 'success'
+        uses: pupilfirst/actions/grading@v1
+        with:
+          fail_submission: true
+          feedback: |
+            The URL you submitted is either invalid or does not look like a
+            Netlify app URL. Please make sure that you submit the URL of an
+            app hosted using Netlify, which should look something like this:
+            `https://NAME.netlify.app`.
+  tests:
+    needs: repo_check
+    if: needs.repo_check.outputs.outcome == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout student repo and verify its structure
+        id: check-student-repo
+        uses: pupilfirst/actions/check_repo@v1
+        with:
+          repoPath: submission
+          globs: |-
+            .gitignore
+            hello-react/*
+            smarter-tasks/public/*
+            smarter-tasks/src/App.tsx
+            smarter-tasks/src/Task.tsx
+            smarter-tasks/src/TaskApp.tsx
+            smarter-tasks/src/TaskForm.tsx
+            smarter-tasks/src/TaskList.tsx
+            smarter-tasks/src/index.tsx
+            smarter-tasks/package.json
+            smarter-tasks/package-lock.json
+      - name: Check out the tests repo
+        if: steps.check-student-repo.outputs.result == 'success'
+        uses: actions/checkout@v2
+        id: checkout-tests-repo
+        with:
+          repository: pupilfirst/wd301-tests
+          path: tests
+      - name: Copy submission files to tests folder
+        if: steps.checkout-tests-repo.outcome == 'success'
+        id: copy-submission-files
+        run: |
+          cp tests/helpers/generateReportFromResults.js tests/l3/generateReportFromResults.js
+          cp submission/hello-react/src/App.tsx tests/l3/src/App.tsx
+          cp submission/hello-react/src/Task.tsx tests/l3/src/Task.tsx
+          cp submission/hello-react/src/TaskApp.tsx tests/l3/src/TaskApp.tsx
+          cp submission/hello-react/src/TaskForm.tsx tests/l3/src/TaskForm.tsx
+          cp submission/hello-react/src/TaskList.tsx tests/l3/src/TaskList.tsx
+      - name: Cypress run with env
+        if: steps.copy-submission-files.outcome == 'success'
+        uses: cypress-io/github-action@v4
+        continue-on-error: true
+        with:
+          browser: chrome
+          project: ./tests/l3
+          env: STUDENT_SUBMISSION_URL=${{needs.repo_check.outputs.submissionUrl}}
+      - name: Use Node.js to generate report
+        if: steps.copy-submission-files.outcome == 'success'
+        id: generate-report
+        run: cd tests/l3 && node generateReportFromResults.js
+      - name: Grade the submission based on test results
+        uses: pupilfirst/actions/grading@v1
+        if: steps.generate-report.outcome == 'success'
+        with:
+          report_file_path: "tests/l3/report.json"
