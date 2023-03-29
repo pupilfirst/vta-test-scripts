@@ -1,0 +1,63 @@
+name: WD301 - L1 Milestone
+
+on:
+  push:
+    branches: ["submission-*"]
+
+env:
+  REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+  REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout student repo and verify its structure
+        id: check-student-repo
+        uses: pupilfirst/actions/check_repo@v1
+        with:
+          repoPath: submission
+          globs: |-
+            .gitignore
+            hello-react/public/*
+            hello-react/src/App.js
+            hello-react/src/index.css
+            hello-react/src/index.js
+            hello-react/src/reportWebVitals.js
+            hello-react/src/TaskCard.js
+            hello-react/src/TaskCard.css
+            hello-react/tailwind.config.js
+            hello-react/package.json
+            hello-react/package-lock.json
+      - name: Check out the tests repo
+        if: steps.check-student-repo.outputs.result == 'success'
+        uses: actions/checkout@v2
+        id: checkout-tests-repo
+        with:
+          repository: pupilfirst/wd301-tests
+          path: tests
+      - name: Copy submission files to tests folder
+        if: steps.checkout-tests-repo.outcome == 'success'
+        id: copy-submission-files
+        run: |
+          cp tests/helpers/generateReportFromResults.js tests/l1/generateReportFromResults.js
+          cp submission/hello-react/src/App.js tests/l1/src/App.js
+          cp submission/hello-react/src/TaskCard.js tests/l1/src/TaskCard.js
+          cp submission/hello-react/src/TaskCard.css tests/l1/src/TaskCard.css
+      - name: Run tests using merged code
+        continue-on-error: true
+        if: steps.copy-submission-files.outcome == 'success'
+        run: |
+          cd tests/l1
+          npm install
+          npm run test
+      - name: Use Node.js to generate report
+        if: steps.copy-submission-files.outcome == 'success'
+        id: generate-report
+        run: cd tests/l1 && node generateReportFromResults.js
+      - name: Grade the submission based on test results
+        uses: pupilfirst/actions/grading@v1
+        if: steps.generate-report.outcome == 'success'
+        with:
+          report_file_path: "tests/l1/report.json"
