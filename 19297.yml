@@ -75,11 +75,6 @@ jobs:
         if: steps.checkout-tests-repo.outcome == 'success'
         id: copy-report-generator
         run: cp tests/helpers/generateReportFromResults.js tests/l3/generateReportFromResults.js
-      #     cp submission/smarter-tasks/src/App.tsx tests/l3/src/App.tsx
-      #     cp submission/smarter-tasks/src/Task.tsx tests/l3/src/Task.tsx
-      #     cp submission/smarter-tasks/src/TaskApp.tsx tests/l3/src/TaskApp.tsx
-      #     cp submission/smarter-tasks/src/TaskForm.tsx tests/l3/src/TaskForm.tsx
-      #     cp submission/smarter-tasks/src/TaskList.tsx tests/l3/src/TaskList.tsx
       - name: Run cypress tests
         continue-on-error: true
         if: steps.copy-report-generator.outcome == 'success'
