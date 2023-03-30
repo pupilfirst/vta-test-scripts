@@ -71,16 +71,16 @@ jobs:
         with:
           repository: pupilfirst/wd301-tests
           path: tests
-      - name: Copy submission files to tests folder
-        if: steps.checkout-tests-repo.outcome == 'success'
-        id: copy-submission-files
-        run: |
-          cp tests/helpers/generateReportFromResults.js tests/l3/generateReportFromResults.js
-          cp submission/hello-react/src/App.tsx tests/l3/src/App.tsx
-          cp submission/hello-react/src/Task.tsx tests/l3/src/Task.tsx
-          cp submission/hello-react/src/TaskApp.tsx tests/l3/src/TaskApp.tsx
-          cp submission/hello-react/src/TaskForm.tsx tests/l3/src/TaskForm.tsx
-          cp submission/hello-react/src/TaskList.tsx tests/l3/src/TaskList.tsx
+      # - name: Copy submission files to tests folder
+      #   if: steps.checkout-tests-repo.outcome == 'success'
+      #   id: copy-submission-files
+      #   run: |
+      #     cp tests/helpers/generateReportFromResults.js tests/l3/generateReportFromResults.js
+      #     cp submission/smarter-tasks/src/App.tsx tests/l3/src/App.tsx
+      #     cp submission/smarter-tasks/src/Task.tsx tests/l3/src/Task.tsx
+      #     cp submission/smarter-tasks/src/TaskApp.tsx tests/l3/src/TaskApp.tsx
+      #     cp submission/smarter-tasks/src/TaskForm.tsx tests/l3/src/TaskForm.tsx
+      #     cp submission/smarter-tasks/src/TaskList.tsx tests/l3/src/TaskList.tsx
       - name: Cypress run with env
         if: steps.copy-submission-files.outcome == 'success'
         uses: cypress-io/github-action@v4
