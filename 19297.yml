@@ -46,8 +46,6 @@ jobs:
     if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      STUDENT_SUBMISSION_URL: ${{needs.repo_check.outputs.submissionUrl}}
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
@@ -88,7 +86,7 @@ jobs:
         run: |
           cd tests/l3
           npm install
-          npm run cy:run
+          npm run cy:run -- --env STUDENT_SUBMISSION_URL="${{needs.repo_check.outputs.submissionUrl}}"
       - name: Use Node.js to generate report
         if: steps.copy-report-generator.outcome == 'success'
         id: generate-report
