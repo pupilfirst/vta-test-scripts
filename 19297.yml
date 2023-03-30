@@ -18,7 +18,7 @@ jobs:
       - name: Check out the parent repository with student submission data
         uses: actions/checkout@v2
       - name: Extract the student submission repo from URL
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         id: get-submission-url
         continue-on-error: true
         with:
@@ -46,6 +46,8 @@ jobs:
     if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      STUDENT_SUBMISSION_URL: ${{needs.repo_check.outputs.submissionUrl}}
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
@@ -71,26 +73,24 @@ jobs:
         with:
           repository: pupilfirst/wd301-tests
           path: tests
-      # - name: Copy submission files to tests folder
-      #   if: steps.checkout-tests-repo.outcome == 'success'
-      #   id: copy-submission-files
-      #   run: |
-      #     cp tests/helpers/generateReportFromResults.js tests/l3/generateReportFromResults.js
+      - name: Copy submission files to tests folder
+        if: steps.checkout-tests-repo.outcome == 'success'
+        id: copy-report-generator
+        run: cp tests/helpers/generateReportFromResults.js tests/l3/generateReportFromResults.js
       #     cp submission/smarter-tasks/src/App.tsx tests/l3/src/App.tsx
       #     cp submission/smarter-tasks/src/Task.tsx tests/l3/src/Task.tsx
       #     cp submission/smarter-tasks/src/TaskApp.tsx tests/l3/src/TaskApp.tsx
       #     cp submission/smarter-tasks/src/TaskForm.tsx tests/l3/src/TaskForm.tsx
       #     cp submission/smarter-tasks/src/TaskList.tsx tests/l3/src/TaskList.tsx
-      - name: Cypress run with env
-        if: steps.copy-submission-files.outcome == 'success'
-        uses: cypress-io/github-action@v4
+      - name: Run cypress tests
         continue-on-error: true
-        with:
-          browser: chrome
-          project: ./tests/l3
-          env: STUDENT_SUBMISSION_URL=${{needs.repo_check.outputs.submissionUrl}}
+        if: steps.copy-report-generator.outcome == 'success'
+        run: |
+          cd tests/l3
+          npm install
+          npm run cy:run
       - name: Use Node.js to generate report
-        if: steps.copy-submission-files.outcome == 'success'
+        if: steps.copy-report-generator.outcome == 'success'
         id: generate-report
         run: cd tests/l3 && node generateReportFromResults.js
       - name: Grade the submission based on test results
