@@ -24,6 +24,7 @@ jobs:
             hello-react/src/App.tsx
             hello-react/src/index.css
             hello-react/src/index.tsx
+            hello-react/src/main.ts
             hello-react/src/reportWebVitals.js
             hello-react/src/TaskCard.tsx
             hello-react/src/TaskCard.css
