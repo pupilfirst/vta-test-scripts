@@ -1,7 +1,3 @@
-# ### #
-# WIP #
-# ### #
-
 name: WD301 - L2 Milestone
 
 on:
@@ -31,8 +27,6 @@ jobs:
             hello-react/src/reportWebVitals.js
             hello-react/src/TaskCard.tsx
             hello-react/src/TaskCard.css
-            hello-react/src/main.ts
-            hello-react/src/main.tsx
             hello-react/tailwind.config.js
             hello-react/package.json
             hello-react/package-lock.json
