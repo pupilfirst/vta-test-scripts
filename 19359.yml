@@ -43,7 +43,7 @@ jobs:
         id: copy-submission-files
         run: |
           cp tests/helpers/generateReportFromResults.js tests/l2/generateReportFromResults.js
-          cp -r submission/hello-react/src/* tests/l2/src/
+          cp -rn submission/hello-react/src/* tests/l2/src/
       - name: Run tests using merged code
         continue-on-error: true
         if: steps.copy-submission-files.outcome == 'success'
