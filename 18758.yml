@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@v2
         id: checkout-solutions-repo
         with:
-          repository: pupilfirst/wd201-nodejs-solutions
+          repository: pupilfirst/wd201-tests
           path: solution
       - name: Copy submission files to solution
         if: steps.checkout-solutions-repo.outcome == 'success'
