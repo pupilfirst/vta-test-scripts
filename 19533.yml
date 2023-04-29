@@ -47,11 +47,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Report to LMS that tests are in progress
-        uses: pupilfirst/actions/reporting@v1
-        with:
-          status: in_progress
-          description: Automated tests are in progress
       - name: Checkout student repo and verify its structure
         id: check-student-repo
         uses: pupilfirst/actions/check_repo@v1
@@ -77,6 +72,12 @@ jobs:
             smarter-tasks/src/TaskList.tsx
             smarter-tasks/package.json
             smarter-tasks/package-lock.json
+      - name: Report to LMS that tests are in progress
+        if: steps.check-student-repo.outputs.result == 'success'
+        uses: pupilfirst/actions/reporting@v1
+        with:
+          status: in_progress
+          description: Automated tests are in progress
       - name: Check out the tests repo
         if: steps.check-student-repo.outputs.result == 'success'
         uses: actions/checkout@v2
