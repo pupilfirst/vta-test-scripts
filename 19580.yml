@@ -103,12 +103,10 @@ jobs:
       - name: Run cypress tests
         continue-on-error: true
         if: steps.run-app.outcome == 'success'
-        id: run-tests
         run: |
           cd submission/smarter-tasks
           npm run cy:run -- --env STUDENT_SUBMISSION_URL="http://localhost:3000/"
       - name: Use Node.js to generate report
-        if: steps.run-tests.outcome == 'success'
         id: generate-report
         run: cd submission/smarter-tasks && node generateReportFromResults.js
       - name: Grade the submission based on test results
