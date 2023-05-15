@@ -12,7 +12,7 @@ env:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     services:
       postgres:
         image: postgres:15.2
@@ -103,6 +103,7 @@ jobs:
       - name: Run cypress tests
         continue-on-error: true
         if: steps.run-app.outcome == 'success'
+        timeout-minutes: 2
         run: |
           cd submission/smarter-tasks
           npm run cy:run -- --env STUDENT_SUBMISSION_URL="http://localhost:3000/"

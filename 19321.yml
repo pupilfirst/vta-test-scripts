@@ -11,7 +11,7 @@ env:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
@@ -47,6 +47,7 @@ jobs:
           cp submission/hello-react/src/TaskCard.css tests/l1/src/TaskCard.css
       - name: Run tests using merged code
         continue-on-error: true
+        timeout-minutes: 2
         if: steps.copy-submission-files.outcome == 'success'
         run: |
           cd tests/l1

@@ -45,7 +45,7 @@ jobs:
     needs: repo_check
     if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
@@ -79,6 +79,7 @@ jobs:
         run: cp tests/helpers/generateReportFromResults.js tests/l4/generateReportFromResults.js
       - name: Run cypress tests
         continue-on-error: true
+        timeout-minutes: 2
         if: steps.copy-report-generator.outcome == 'success'
         run: |
           cd tests/l4

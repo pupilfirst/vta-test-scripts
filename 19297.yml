@@ -45,7 +45,7 @@ jobs:
     needs: repo_check
     if: needs.repo_check.outputs.outcome == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
@@ -78,6 +78,7 @@ jobs:
       - name: Run cypress tests
         continue-on-error: true
         if: steps.copy-report-generator.outcome == 'success'
+        timeout-minutes: 2
         run: |
           cd tests/l3
           npm install
