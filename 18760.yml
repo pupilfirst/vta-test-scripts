@@ -34,6 +34,7 @@ jobs:
           feedback: We failed to extract the URL for your live web application from your submission. Please submit again; if this issue persists, please reach out to our team for support.
   tests:
     needs: extract_url
+    timeout-minutes: 10
     if: needs.extract_url.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -82,6 +83,7 @@ jobs:
       - name: Cypress run with env
         if: steps.checkout-solutions-repo.outcome == 'success'
         uses: cypress-io/github-action@v4
+        timeout-minutes: 2
         continue-on-error: true
         with:
           browser: chrome

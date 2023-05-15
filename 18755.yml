@@ -10,7 +10,7 @@ env:
 
 jobs:
   tests:
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - name: Checkout student repo and verify its structure
@@ -44,6 +44,7 @@ jobs:
       - name: Run tests in the solution repo
         if: steps.copy-submission-files.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 2
         id: run-test
         run: |
           cd solution/l3

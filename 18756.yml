@@ -10,7 +10,7 @@ env:
 
 jobs:
   tests:
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - name: Checkout student repo and verify its structure
@@ -52,6 +52,7 @@ jobs:
         continue-on-error: true
         id: run-jest-test
         if: steps.copy-submission-files.outcome == 'success'
+        timeout-minutes: 2
         run: |
           cd solution/l4
           npm install
