@@ -89,8 +89,6 @@ jobs:
           cp tests/helpers/generateReportFromResults.js submission/smarter-tasks/generateReportFromResults.js
           cp -R tests/l6/cypress submission/smarter-tasks/
           cp tests/l6/cypress.config.ts submission/smarter-tasks/cypress.config.ts
-          cp tests/l6/package.json submission/smarter-tasks/package.json
-          cp tests/l6/package-lock.json submission/smarter-tasks/package-lock.json
       - name: Run the smarter-tasks app
         if: steps.copy-tests-to-submission.outcome == 'success'
         id: run-app
@@ -106,7 +104,8 @@ jobs:
         timeout-minutes: 2
         run: |
           cd submission/smarter-tasks
-          npm run cy:run -- --env STUDENT_SUBMISSION_URL="http://localhost:3000/"
+          npm install cypress cypress-json-results
+          npx cypress run --env STUDENT_SUBMISSION_URL="http://localhost:3000/"
       - name: Use Node.js to generate report
         id: generate-report
         run: cd submission/smarter-tasks && node generateReportFromResults.js
