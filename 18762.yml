@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@v1
+        uses: pupilfirst/check-repo-action@v1
         with:
           repoPath: submission
           globs: |-
@@ -108,7 +108,7 @@ jobs:
           report_file_path: "solution/l10/report.json"
       - name: Grade the submission based on test results
         if: steps.generate-report.outcome == 'success'
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           report_file_path: "solution/l10/report.json"
       - name: Report error to LMS

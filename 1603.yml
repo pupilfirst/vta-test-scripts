@@ -31,7 +31,7 @@ jobs:
           result-encoding: string
       - name: Report invalid repository URL in submission
         if: steps.get-repo-name.outcome != 'success'
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           fail_submission: true
           feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL and not a link to directory or branch.
@@ -94,7 +94,7 @@ jobs:
         working-directory: solution/l2
         run: bundle exec ruby test.rb
       - name: Grade the submission based on test results
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           report_file_path: "solution/l2/report.json"
         env:
