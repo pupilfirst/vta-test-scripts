@@ -63,7 +63,7 @@ jobs:
             todo-app/package-lock.json
       - name: Report to LMS tests in progress
         if: steps.check-student-repo.outputs.result == 'success'
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         with:
           status: "in_progress"
           description: "The automated tests are in progress"
@@ -101,10 +101,9 @@ jobs:
           cd solution/l10 && node generateReportFromResults.js
       - name: Report to LMS the outcome of tests.
         if: steps.generate-report.outcome == 'success'
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         id: report-test-results
         with:
-          status: "completed"
           report_file_path: "solution/l10/report.json"
       - name: Grade the submission based on test results
         if: steps.generate-report.outcome == 'success'
@@ -113,10 +112,9 @@ jobs:
           report_file_path: "solution/l10/report.json"
       - name: Report error to LMS
         if: steps.report-test-results.outcome == 'skipped'
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         with:
-          status: "completed"
-          conclusion: "error"
+          status: "error"
           description: |
             Automated tests could not be run successfully. Please ask a member
             of the Pupilfirst team to look into this submission's VTA logs.
