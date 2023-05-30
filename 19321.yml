@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@v1
+        uses: pupilfirst/check-repo-action@v1
         with:
           repoPath: submission
           globs: |-
@@ -58,7 +58,7 @@ jobs:
         id: generate-report
         run: cd tests/l1 && node generateReportFromResults.js
       - name: Grade the submission based on test results
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         if: steps.generate-report.outcome == 'success'
         with:
           report_file_path: "tests/l1/report.json"

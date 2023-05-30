@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@v1
+        uses: pupilfirst/check-repo-action@v1
         with:
           repoPath: submission
           globs: |-
@@ -50,7 +50,7 @@ jobs:
           cd solution/l3
           node test.js
       - name: Grade the submission based on test results
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         if: steps.run-test.outcome == 'success'
         with:
           report_file_path: "solution/l3/report.json"

@@ -28,7 +28,7 @@ jobs:
           result-encoding: string
       - name: Report invalid repository URL in submission
         if: steps.get-submission-url.outcome != 'success'
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           fail_submission: true
           feedback: We failed to extract the URL for your live web application from your submission. Please submit again; if this issue persists, please reach out to our team for support.
@@ -40,7 +40,7 @@ jobs:
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@v1
+        uses: pupilfirst/check-repo-action@v1
         with:
           repoPath: submission
           globs: |-
@@ -95,7 +95,7 @@ jobs:
           cd solution/l7 && node generateReportFromResults.js
       - name: Grade the submission based on test results
         if: steps.checkout-solutions-repo.outcome == 'success'
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           report_file_path: "solution/l7/report.json"
       - name: Report to LMS the outcome of tests.

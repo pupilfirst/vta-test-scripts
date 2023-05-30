@@ -24,7 +24,7 @@ jobs:
       - name: Report invalid JS file to the LMS by rejecting submission.
         if: steps.copy-script.outcome != 'success'
         id: invalid-js-file
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           fail_submission: true
           feedback: |
@@ -51,6 +51,6 @@ jobs:
           node generateReportFromResults.js
       - name: Grade the submission based on test results
         if: steps.generate-feedback.outcome == 'success'
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           report_file_path: "solution/report.json"

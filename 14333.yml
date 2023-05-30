@@ -34,7 +34,7 @@ jobs:
         run: |
           ruby 14333.rb
       - name: Grade the submission based on test results
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           report_file_path: "scripts/ev-201/report.json"
         env:
