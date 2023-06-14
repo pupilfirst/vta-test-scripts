@@ -17,7 +17,7 @@ jobs:
         with:
           args: -LJO https://raw.githubusercontent.com/pupilfirst/vta-test-scripts/master/report/pass.json
       - name: Grade the submission based on test results
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           report_file_path: "pass.json"
         env:

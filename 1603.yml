@@ -31,7 +31,7 @@ jobs:
           result-encoding: string
       - name: Report invalid repository URL in submission
         if: steps.get-repo-name.outcome != 'success'
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           fail_submission: true
           feedback: The submitted repository URL is either invalid or private. Please make sure that you submit a valid public repository URL and not a link to directory or branch.
@@ -57,10 +57,9 @@ jobs:
           path: submission
       - name: Report invalid repository URL in submission
         if: steps.checkout-student-repo.outcome != 'success'
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         with:
-          status: "completed"
-          conclusion: "error"
+          status: "error"
           description: "The student repo does not exist"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
@@ -71,7 +70,7 @@ jobs:
           repository: "pupilfirst/wd201-solutions"
           path: solution
       - name: Report to LMS tests in progress
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         with:
           status: "in_progress"
           description: "The automated tests are in progress"
@@ -94,16 +93,15 @@ jobs:
         working-directory: solution/l2
         run: bundle exec ruby test.rb
       - name: Grade the submission based on test results
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           report_file_path: "solution/l2/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
           REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
       - name: Report to LMS the outcome of tests.
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         with:
-          status: "completed"
           report_file_path: "solution/l2/report.json"
         env:
           REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}

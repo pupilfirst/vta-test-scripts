@@ -11,11 +11,11 @@ env:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@v1
+        uses: pupilfirst/check-repo-action@v1
         with:
           repoPath: submission
           globs: |-
@@ -47,6 +47,7 @@ jobs:
           cp submission/hello-react/src/TaskCard.css tests/l1/src/TaskCard.css
       - name: Run tests using merged code
         continue-on-error: true
+        timeout-minutes: 2
         if: steps.copy-submission-files.outcome == 'success'
         run: |
           cd tests/l1
@@ -57,7 +58,7 @@ jobs:
         id: generate-report
         run: cd tests/l1 && node generateReportFromResults.js
       - name: Grade the submission based on test results
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         if: steps.generate-report.outcome == 'success'
         with:
           report_file_path: "tests/l1/report.json"

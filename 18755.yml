@@ -10,12 +10,12 @@ env:
 
 jobs:
   tests:
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@v1
+        uses: pupilfirst/check-repo-action@v1
         with:
           repoPath: submission
           globs: |-
@@ -28,7 +28,7 @@ jobs:
         id: checkout-solutions-repo
         uses: actions/checkout@v2
         with:
-          repository: pupilfirst/wd201-nodejs-solutions
+          repository: pupilfirst/wd201-tests
           path: solution
       - name: Copy submission files to solution
         if: steps.checkout-solutions-repo.outcome == 'success'
@@ -44,12 +44,13 @@ jobs:
       - name: Run tests in the solution repo
         if: steps.copy-submission-files.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 2
         id: run-test
         run: |
           cd solution/l3
           node test.js
       - name: Grade the submission based on test results
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         if: steps.run-test.outcome == 'success'
         with:
           report_file_path: "solution/l3/report.json"

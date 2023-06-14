@@ -10,12 +10,12 @@ env:
 
 jobs:
   tests:
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@v1
+        uses: pupilfirst/check-repo-action@v1
         with:
           repoPath: submission
           globs: |-
@@ -30,7 +30,7 @@ jobs:
             todo-cli/todo.js
       - name: Report to LMS tests in progress
         if: ${{ steps.check-student-repo.outputs.result == 'success' }}
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         with:
           status: "in_progress"
           description: "Automated tests are in progress."
@@ -39,7 +39,7 @@ jobs:
         id: checkout-solutions-repo
         uses: actions/checkout@v2
         with:
-          repository: pupilfirst/wd201-nodejs-solutions
+          repository: pupilfirst/wd201-tests
           path: solution
       - name: Copy submission test files to solution
         if: steps.checkout-solutions-repo.outcome == 'success'
@@ -52,6 +52,7 @@ jobs:
         continue-on-error: true
         id: run-jest-test
         if: steps.copy-submission-files.outcome == 'success'
+        timeout-minutes: 2
         run: |
           cd solution/l4
           npm install
@@ -62,16 +63,14 @@ jobs:
         run: |
           cd solution/l4 && node generateReportFromResults.js
       - name: Report to LMS the outcome of tests.
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         if: steps.generate-report.outcome == 'success'
         id: report-test-results
         with:
-          status: "completed"
           report_file_path: "solution/l4/report.json"
       - name: Report error to LMS
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         if: ${{ steps.checkout-solutions-repo.outcome == 'success' && steps.report-test-results.outcome == 'skipped' }}
         with:
-          status: "completed"
-          conclusion: "error"
+          status: "error"
           description: "Automated tests could not be run successfully"

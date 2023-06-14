@@ -28,18 +28,19 @@ jobs:
           result-encoding: string
       - name: Report invalid repository URL in submission
         if: steps.get-submission-url.outcome != 'success'
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           fail_submission: true
           feedback: We failed to extract the URL for your live web application from your submission. Please submit again; if this issue persists, please reach out to our team for support.
   tests:
     needs: extract_url
+    timeout-minutes: 10
     if: needs.extract_url.outputs.outcome == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout student repo and verify its structure
         id: check-student-repo
-        uses: pupilfirst/actions/check_repo@v1
+        uses: pupilfirst/check-repo-action@v1
         with:
           repoPath: submission
           globs: |-
@@ -63,7 +64,7 @@ jobs:
             todo-app/package-lock.json
       - name: Report to LMS that tests are in progress
         if: steps.check-student-repo.outputs.result == 'success'
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         with:
           status: "in_progress"
           description: "Automated tests are in progress"
@@ -72,7 +73,7 @@ jobs:
         id: checkout-solutions-repo
         uses: actions/checkout@v2
         with:
-          repository: "pupilfirst/wd201-nodejs-solutions"
+          repository: "pupilfirst/wd201-tests"
           path: solution
       - name: Hack to run cypress on root
         if: steps.checkout-solutions-repo.outcome == 'success'
@@ -82,6 +83,7 @@ jobs:
       - name: Cypress run with env
         if: steps.checkout-solutions-repo.outcome == 'success'
         uses: cypress-io/github-action@v4
+        timeout-minutes: 2
         continue-on-error: true
         with:
           browser: chrome
@@ -93,12 +95,11 @@ jobs:
           cd solution/l8 && node generateReportFromResults.js
       - name: Grade the submission based on test results
         if: steps.checkout-solutions-repo.outcome == 'success'
-        uses: pupilfirst/actions/grading@v1
+        uses: pupilfirst/grade-action@v1
         with:
           report_file_path: "solution/l8/report.json"
       - name: Report to LMS the outcome of tests.
         if: steps.checkout-solutions-repo.outcome == 'success'
-        uses: pupilfirst/actions/reporting@v1
+        uses: pupilfirst/report-action@v1
         with:
-          status: "completed"
           report_file_path: "solution/l8/report.json"

@@ -1,4 +1,4 @@
-name: WD301 - L3 Milestone
+name: WD301 - L5 Milestone
 
 on:
   push:
@@ -56,14 +56,28 @@ jobs:
             .gitignore
             hello-react/*
             smarter-tasks/public/*
+            smarter-tasks/src/hooks/useLocalStorage.ts
             smarter-tasks/src/App.tsx
+            smarter-tasks/src/Header.tsx
+            smarter-tasks/src/HomePage.tsx
+            smarter-tasks/src/index.tsx
+            smarter-tasks/src/NotFound.tsx
+            smarter-tasks/src/ProtectedRoute.tsx
+            smarter-tasks/src/Signin.tsx
             smarter-tasks/src/Task.tsx
             smarter-tasks/src/TaskApp.tsx
+            smarter-tasks/src/TaskCard.css
+            smarter-tasks/src/TaskDetailsPage.tsx
             smarter-tasks/src/TaskForm.tsx
             smarter-tasks/src/TaskList.tsx
-            smarter-tasks/src/index.tsx
             smarter-tasks/package.json
             smarter-tasks/package-lock.json
+      - name: Report to LMS that tests are in progress
+        if: steps.check-student-repo.outputs.result == 'success'
+        uses: pupilfirst/report-action@v1
+        with:
+          status: in_progress
+          description: Automated tests are in progress
       - name: Check out the tests repo
         if: steps.check-student-repo.outputs.result == 'success'
         uses: actions/checkout@v2
@@ -74,21 +88,35 @@ jobs:
       - name: Copy submission files to tests folder
         if: steps.checkout-tests-repo.outcome == 'success'
         id: copy-report-generator
-        run: cp tests/helpers/generateReportFromResults.js tests/l3/generateReportFromResults.js
+        run: cp tests/helpers/generateReportFromResults.js tests/l5/generateReportFromResults.js
       - name: Run cypress tests
         continue-on-error: true
         if: steps.copy-report-generator.outcome == 'success'
         timeout-minutes: 2
         run: |
-          cd tests/l3
+          cd tests/l5
           npm install
           npm run cy:run -- --env STUDENT_SUBMISSION_URL="${{needs.repo_check.outputs.submissionUrl}}"
       - name: Use Node.js to generate report
         if: steps.copy-report-generator.outcome == 'success'
         id: generate-report
-        run: cd tests/l3 && node generateReportFromResults.js
+        run: cd tests/l5 && node generateReportFromResults.js
+      - name: Report to LMS the outcome of tests.
+        if: steps.generate-report.outcome == 'success'
+        uses: pupilfirst/report-action@v1
+        id: report-test-results
+        with:
+          report_file_path: tests/l5/report.json
       - name: Grade the submission based on test results
         uses: pupilfirst/grade-action@v1
         if: steps.generate-report.outcome == 'success'
         with:
-          report_file_path: "tests/l3/report.json"
+          report_file_path: tests/l5/report.json
+      - name: Report error to LMS
+        if: steps.report-test-results.outcome == 'skipped'
+        uses: pupilfirst/report-action@v1
+        with:
+          status: "error"
+          description: |
+            Automated tests could not be run successfully. Please ask a member
+            of the Pupilfirst team to look into this submission's VTA logs.
