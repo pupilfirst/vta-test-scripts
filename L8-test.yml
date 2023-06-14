@@ -1,0 +1,151 @@
+name: WD301 - L8 Milestone
+
+on:
+  push:
+    branches: ["submission-*"]
+
+env:
+  REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+  REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+  NODE_ENV: test
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:15.2
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wd301_api_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout student repo and verify its structure
+        id: check-student-repo
+        uses: pupilfirst/check-repo-action@v1
+        with:
+          repoPath: submission
+          globs: |-
+            .gitignore
+            hello-react/*
+            smarter-tasks/public/*
+            smarter-tasks/src/hooks/useLocalStorage.ts
+            smarter-tasks/src/config/constants.ts
+            smarter-tasks/src/context/task/action.ts
+            smarter-tasks/src/context/task/context.tsx
+            smarter-tasks/src/context/task/types.ts
+            smarter-tasks/src/context/task/reducer.ts
+            smarter-tasks/src/context/comment/action.ts
+            smarter-tasks/src/context/comment/context.tsx
+            smarter-tasks/src/context/comment/types.ts
+            smarter-tasks/src/context/comment/reducer.ts
+            smarter-tasks/src/pages/dashboard/index.tsx
+            smarter-tasks/src/pages/signin/index.tsx
+            smarter-tasks/src/pages/signin/SigninForm.tsx
+            smarter-tasks/src/pages/signup/index.tsx
+            smarter-tasks/src/pages/signup/SignupForm.tsx
+            smarter-tasks/src/pages/project_details/Coloumn.tsx
+            smarter-tasks/src/pages/project_details/DragDropList.tsx
+            smarter-tasks/src/pages/project_details/index.tsx
+            smarter-tasks/src/pages/project_details/ProjectDetails.tsx
+            smarter-tasks/src/pages/project_details/Task.tsx
+            smarter-tasks/src/pages/project_details/TaskCard.css
+            smarter-tasks/src/pages/project_details/TaskList.tsx
+            smarter-tasks/src/pages/projects/index.tsx
+            smarter-tasks/src/pages/projects/NewProject.tsx
+            smarter-tasks/src/pages/projects/ProjectContainer.tsx
+            smarter-tasks/src/pages/projects/ProjectList.tsx
+            smarter-tasks/src/pages/projects/ProjectListItems.tsx
+            smarter-tasks/src/App.tsx
+            smarter-tasks/src/Header.tsx
+            smarter-tasks/src/HomePage.tsx
+            smarter-tasks/src/index.tsx
+            smarter-tasks/src/NotFound.tsx
+            smarter-tasks/src/ProtectedRoute.tsx
+            smarter-tasks/package.json
+            smarter-tasks/package-lock.json
+      - name: Report to LMS that tests are in progress
+        if: steps.check-student-repo.outcome == 'success'
+        uses: pupilfirst/report-action@v1
+        with:
+          status: in_progress
+          description: Automated tests are in progress
+      - name: Check out the api repo
+        if: steps.check-student-repo.outcome == 'success'
+        uses: actions/checkout@v3
+        id: checkout-api-repo
+        with:
+          repository: pupilfirst/wd301-api
+          path: api
+      - name: Run the API
+        if: steps.checkout-api-repo.outcome == 'success'
+        id: run-api
+        run: |
+          cd api
+          npm install
+          npx sequelize-cli db:migrate
+          echo PORT=3001 > .env
+          npm run start &
+          sleep 5
+      - name: Check out the tests repo
+        if: steps.run-api.outcome == 'success'
+        uses: actions/checkout@v3
+        id: checkout-tests-repo
+        with:
+          repository: pupilfirst/wd301-tests
+          path: tests
+      - name: Copy tests to the submission folder
+        if: steps.checkout-tests-repo.outcome == 'success'
+        id: copy-tests-to-submission
+        run: |
+          cp tests/helpers/generateReportFromResults.js submission/smarter-tasks/generateReportFromResults.js
+          cp -R tests/l8/cypress submission/smarter-tasks/
+          cp tests/l8/cypress.config.ts submission/smarter-tasks/cypress.config.ts
+      - name: Run the smarter-tasks app
+        if: steps.copy-tests-to-submission.outcome == 'success'
+        id: run-app
+        run: |
+          cd submission/smarter-tasks
+          echo VITE_API_ENDPOINT="http://localhost:3001" > .env
+          npm install
+          npm start -- --port 3000 &
+          sleep 5
+      - name: Run cypress tests
+        continue-on-error: true
+        if: steps.run-app.outcome == 'success'
+        timeout-minutes: 2
+        run: |
+          cd submission/smarter-tasks
+          npm install cypress cypress-json-results
+          npx cypress run --env STUDENT_SUBMISSION_URL="http://localhost:3000/"
+      - name: Use Node.js to generate report
+        id: generate-report
+        run: cd submission/smarter-tasks && node generateReportFromResults.js
+      - name: Grade the submission based on test results
+        uses: pupilfirst/grade-action@v1
+        if: steps.generate-report.outcome == 'success'
+        id: grade-submission
+        with:
+          report_file_path: submission/smarter-tasks/report.json
+      - name: Report to LMS the outcome of tests.
+        if: steps.grade-submission.outcome == 'success'
+        uses: pupilfirst/report-action@v1
+        id: report-test-results
+        with:
+          report_file_path: submission/smarter-tasks/report.json
+      - name: Report error to LMS
+        if: steps.report-test-results.outcome == 'skipped'
+        uses: pupilfirst/report-action@v1
+        with:
+          status: "error"
+          description: |
+            Automated tests could not be run successfully. Please ask a member
+            of the Pupilfirst team to look into this submission's VTA logs.
